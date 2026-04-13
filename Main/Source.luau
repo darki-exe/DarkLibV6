@@ -2264,105 +2264,102 @@ function DarkLib:CreateWindow(cfg)
         -- ─── CreateDivider ────────────────────────────────────────────────────
 
         function TabObj:CreateDivider(divCfg)
-            divCfg = Merge({
-                Text = nil,   
-                Thickness = 1,
-            }, divCfg or {})
+    divCfg = Merge({
+        Text = nil,
+        Thickness = 1,
+    }, divCfg or {})
 
-            local hasText = divCfg.Text ~= nil and divCfg.Text ~= ""
-            local h = hasText and 20 or 10
+    local hasText = divCfg.Text ~= nil and divCfg.Text ~= ""
+    local h = hasText and 20 or 10
 
-            local divRow = New("Frame", {
-                Size = UDim2.new(1, 0, 0, h),
-                BackgroundTransparency = 1,
-                ZIndex = 4,
-                Parent = Page
-            })
+    local divRow = New("Frame", {
+        Size = UDim2.new(1, 0, 0, h),
+        BackgroundTransparency = 1,
+        ZIndex = 4,
+        Parent = Page
+    })
 
-            if hasText then
+    if hasText then
+        local textLbl = New("TextLabel", {
+            Size = UDim2.new(0, 0, 1, 0),
+            Position = UDim2.new(0.5, 0, 0, 0),
+            AnchorPoint = Vector2.new(0.5, 0),
+            AutomaticSize = Enum.AutomaticSize.X,
+            BackgroundTransparency = 1,
+            Text = divCfg.Text,
+            TextColor3 = Theme.TextMuted,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            ZIndex = 5,
+            Parent = divRow
+        })
 
-                New("Frame", {
-                    Size = UDim2.new(0, 0, 0, divCfg.Thickness),
-                    Position = UDim2.new(0, 0, 0.5, 0),
-                    BackgroundColor3 = Theme.Border,
-                    AutomaticSize = Enum.AutomaticSize.None,
-                    ZIndex = 4,
-                    Parent = divRow
-                }, { UICorner(1) })
+        local lineLeft = New("Frame", {
+            Size = UDim2.fromOffset(0, divCfg.Thickness),
+            Position = UDim2.fromOffset(0, h / 2),
+            BackgroundColor3 = Theme.Border,
+            ZIndex = 4,
+            Parent = divRow
+        }, { UICorner(1) })
 
-                local textLbl = New("TextLabel", {
-                    Size = UDim2.new(0, 0, 1, 0),
-                    Position = UDim2.new(0.5, 0, 0, 0),
-                    AnchorPoint = Vector2.new(0.5, 0),
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundTransparency = 1,
-                    Text = divCfg.Text,
-                    TextColor3 = Theme.TextMuted,
-                    Font = Enum.Font.Gotham,
-                    TextSize = 11,
-                    ZIndex = 5,
-                    Parent = divRow
-                })
+        local lineRight = New("Frame", {
+            Size = UDim2.fromOffset(0, divCfg.Thickness),
+            Position = UDim2.fromOffset(0, h / 2),
+            BackgroundColor3 = Theme.Border,
+            ZIndex = 4,
+            Parent = divRow
+        }, { UICorner(1) })
 
+        local function Update()
+            local tw = textLbl.TextBounds.X + 12
+            local totalWidth = divRow.AbsoluteSize.X
+            local halfSpace = (totalWidth - tw) / 2
 
-                local lineLeft = New("Frame", {
-                    Size = UDim2.new(0, 0, 0, divCfg.Thickness),
-                    Position = UDim2.new(0, 0, 0.5, 0),
-                    BackgroundColor3 = Theme.Border,
-                    ZIndex = 4,
-                    Parent = divRow
-                }, { UICorner(1) })
+            halfSpace = math.max(halfSpace, 0)
 
-                -- linha direita
-                local lineRight = New("Frame", {
-                    Size = UDim2.new(0, 0, 0, divCfg.Thickness),
-                    Position = UDim2.new(0.5, 0, 0.5, 0),
-                    BackgroundColor3 = Theme.Border,
-                    ZIndex = 4,
-                    Parent = divRow
-                }, { UICorner(1) })
+            lineLeft.Size = UDim2.fromOffset(halfSpace, divCfg.Thickness)
+            lineLeft.Position = UDim2.fromOffset(0, h / 2)
 
-
-                task.defer(function()
-                    local tw = textLbl.TextBounds.X + 12
-                    local half = (divRow.AbsoluteSize.X - tw) / 2
-                    lineLeft.Size  = UDim2.fromOffset(math.max(half, 0), divCfg.Thickness)
-                    lineRight.Size = UDim2.fromOffset(math.max(half, 0), divCfg.Thickness)
-                    lineRight.Position = UDim2.fromOffset(half + tw, h / 2)
-                    textLbl.Position  = UDim2.fromOffset(half, 0)
-                end)
-            else
-
-                New("Frame", {
-                    Size = UDim2.new(1, -24, 0, divCfg.Thickness),
-                    Position = UDim2.new(0, 12, 0.5, 0),
-                    BackgroundColor3 = Theme.Border,
-                    ZIndex = 4,
-                    Parent = divRow
-                }, { UICorner(1) })
-            end
-
-
-            for _, c in ipairs(divRow:GetDescendants()) do
-                if c:IsA("Frame") then
-                    c.BackgroundTransparency = 1
-                    Tween(c, { BackgroundTransparency = 0 }, "slow")
-                elseif c:IsA("TextLabel") then
-                    c.TextTransparency = 1
-                    Tween(c, { TextTransparency = 0 }, "slow")
-                end
-            end
-
-            AutoCanvas()
-
-            local DivObj = {}
-            function DivObj:Destroy()
-                divRow:Destroy(); AutoCanvas()
-            end
-
-            return DivObj
+            lineRight.Size = UDim2.fromOffset(halfSpace, divCfg.Thickness)
+            lineRight.Position = UDim2.fromOffset(totalWidth - halfSpace, h / 2)
         end
 
+
+        divRow:GetPropertyChangedSignal("AbsoluteSize"):Connect(Update)
+        textLbl:GetPropertyChangedSignal("TextBounds"):Connect(Update)
+
+        Update()
+    else
+        New("Frame", {
+            Size = UDim2.new(1, -24, 0, divCfg.Thickness),
+            Position = UDim2.new(0, 12, 0.5, 0),
+            BackgroundColor3 = Theme.Border,
+            ZIndex = 4,
+            Parent = divRow
+        }, { UICorner(1) })
+    end
+
+
+    for _, c in ipairs(divRow:GetDescendants()) do
+        if c:IsA("Frame") then
+            c.BackgroundTransparency = 1
+            Tween(c, { BackgroundTransparency = 0 }, "slow")
+        elseif c:IsA("TextLabel") then
+            c.TextTransparency = 1
+            Tween(c, { TextTransparency = 0 }, "slow")
+        end
+    end
+
+    AutoCanvas()
+
+    local DivObj = {}
+    function DivObj:Destroy()
+        divRow:Destroy()
+        AutoCanvas()
+    end
+
+    return DivObj
+end
 
         function TabObj:CreateColorPicker(cpCfg, flag)
             cpCfg = Merge({
