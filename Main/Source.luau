@@ -441,67 +441,75 @@ function DarkLib:CreateWindow(cfg)
     })
 
     -- ── Control button factory ──────────────────────────────────────────────
-    local _ctrlOffset = -16
+    local _ctrlOffset = -12
 
-    local function MakeCtrlBtn(bgColor, iconId, fallbackText)
-        local xpos = _ctrlOffset
-        _ctrlOffset = _ctrlOffset - 18
+local function MakeCtrlBtn(accentColor, iconId, fallbackText)
+    local xpos = _ctrlOffset
+    _ctrlOffset = _ctrlOffset - 30
 
-        local btn = New("Frame", {
-            Size     = UDim2.fromOffset(14, 14),
-            Position = UDim2.new(1, xpos, 0.5, -7),
-            BackgroundColor3 = bgColor,
-            ZIndex   = 3,
-            Parent   = TopBar
-        }, { UICorner(7) })
+    local btn = New("Frame", {
+        Size             = UDim2.fromOffset(22, 14),
+        Position         = UDim2.new(1, xpos - 22, 0.5, -7),
+        BackgroundColor3 = Theme.BG3,
+        ZIndex           = 3,
+        Parent           = TopBar
+    }, {
+        UICorner(4),
+        UIStroke(accentColor, 1, 0.55),
+    })
 
-        local validIcon = type(iconId) == "string" and iconId ~= "" and tonumber(iconId:match("%d+")) ~= nil
+    local validIcon = type(iconId) == "string" and iconId ~= ""
+        and tonumber(iconId:match("%d+")) ~= nil
 
-        if validIcon then
-            New("ImageLabel", {
-                Size                 = UDim2.new(1, -2, 1, -2),
-                Position             = UDim2.new(0, 1, 0, 1),
-                BackgroundTransparency = 1,
-                Image                = "rbxassetid://" .. iconId:match("%d+"),
-                ImageColor3          = Color3.new(1, 1, 1),
-                ScaleType            = Enum.ScaleType.Fit,
-                ZIndex               = 4,
-                Parent               = btn
-            })
-        else
-            New("TextLabel", {
-                Size                 = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text                 = fallbackText,
-                TextColor3           = Color3.new(1, 1, 1),
-                TextTransparency     = 0.2,
-                Font                 = Enum.Font.GothamBold,
-                TextSize             = 10,
-                ZIndex               = 4,
-                Parent               = btn
-            })
-        end
-
-        local interact = New("TextButton", {
-            Size                 = UDim2.new(1, 0, 1, 0),
+    if validIcon then
+        New("ImageLabel", {
+            Size                 = UDim2.new(1, -4, 1, -4),
+            Position             = UDim2.new(0, 2, 0, 2),
             BackgroundTransparency = 1,
-            Text                 = "",
-            ZIndex               = 5,
+            Image                = "rbxassetid://" .. iconId:match("%d+"),
+            ImageColor3          = accentColor,
+            ScaleType            = Enum.ScaleType.Fit,
+            ZIndex               = 4,
             Parent               = btn
         })
-
-        interact.MouseEnter:Connect(function()
-            Tween(btn, { BackgroundColor3 = bgColor:Lerp(Color3.new(1,1,1), 0.25) }, "fast")
-        end)
-        interact.MouseLeave:Connect(function()
-            Tween(btn, { BackgroundColor3 = bgColor }, "fast")
-        end)
-
-        return btn, interact
+    else
+        New("TextLabel", {
+            Size                 = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text                 = fallbackText,
+            TextColor3           = accentColor,
+            TextTransparency     = 0.1,
+            Font                 = Enum.Font.GothamBold,
+            TextSize             = 9,
+            ZIndex               = 4,
+            Parent               = btn
+        })
     end
 
-    local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(200, 70, 70),  nil, "✕")
-    local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(60, 140, 220), nil, "─")
+    local interact = New("TextButton", {
+        Size                 = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text                 = "",
+        ZIndex               = 5,
+        Parent               = btn
+    })
+
+    interact.MouseEnter:Connect(function()
+        Tween(btn, { BackgroundColor3 = accentColor:Lerp(Theme.BG, 0.72) }, "fast")
+        local stroke = btn:FindFirstChildWhichIsA("UIStroke")
+        if stroke then Tween(stroke, { Transparency = 0 }, "fast") end
+    end)
+    interact.MouseLeave:Connect(function()
+        Tween(btn, { BackgroundColor3 = Theme.BG3 }, "fast")
+        local stroke = btn:FindFirstChildWhichIsA("UIStroke")
+        if stroke then Tween(stroke, { Transparency = 0.55 }, "fast") end
+    end)
+
+    return btn, interact
+end
+
+local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(190, 60, 90),  nil, "✕")
+local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, "─")
 
     -- ── Navigation sidebar ──
     local NavWidth = 140
@@ -2395,103 +2403,92 @@ function DarkLib:CreateWindow(cfg)
         end)
     end
 
-    -- ── CreateCloseButton ────────────────────────────────────────────────────
-    -- Reconfigures the close button appearance.
-    -- cfg.IconId : string  rbxassetid number (e.g. "7743870040")
-    --                      nil / invalid  →  falls back to "X" text
-    function WindowObj:CreateCloseButton(cfg)
-        cfg = cfg or {}
-        local iconId = cfg.IconId
-        local validIcon = type(iconId) == "string" and iconId ~= ""
-            and tonumber(iconId:match("%d+")) ~= nil
+function WindowObj:CreateCloseButton(cfg)
+    cfg = cfg or {}
+    local iconId    = cfg.IconId
+    local validIcon = type(iconId) == "string" and iconId ~= ""
+        and tonumber(iconId:match("%d+")) ~= nil
 
-
-        for _, c in ipairs(_closeBtnFrame:GetChildren()) do
-            if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
-        end
-
-        if validIcon then
-            New("ImageLabel", {
-                Size                 = UDim2.new(1, -2, 1, -2),
-                Position             = UDim2.new(0, 1, 0, 1),
-                BackgroundTransparency = 1,
-                Image                = "rbxassetid://" .. iconId:match("%d+"),
-                ImageColor3          = Color3.new(1, 1, 1),
-                ScaleType            = Enum.ScaleType.Fit,
-                ZIndex               = 4,
-                Parent               = _closeBtnFrame
-            })
-        else
-            New("TextLabel", {
-                Size                 = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text                 = "X",
-                TextColor3           = Color3.new(1, 1, 1),
-                TextTransparency     = 0.2,
-                Font                 = Enum.Font.GothamBold,
-                TextSize             = 10,
-                ZIndex               = 4,
-                Parent               = _closeBtnFrame
-            })
-        end
+    for _, c in ipairs(_closeBtnFrame:GetChildren()) do
+        if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
     end
 
-    -- ── CreateMinimizeButton ─────────────────────────────────────────────────
-    -- Reconfigures the minimize button appearance and its two icon states.
-    -- cfg.OnIconId  : string  icon shown when window IS minimized   (restore state)
-    -- cfg.OffIconId : string  icon shown when window is NOT minimized (normal state)
-    -- Both nil / invalid  →  uses "-"" / "+" text fallbacks
-    function WindowObj:CreateMinimizeButton(cfg)
-        cfg = cfg or {}
+    local closeColor = Color3.fromRGB(190, 60, 90)
 
-        local function validId(id)
-            return type(id) == "string" and id ~= "" and tonumber(id:match("%d+")) ~= nil
-        end
+    if validIcon then
+        New("ImageLabel", {
+            Size                 = UDim2.new(1, -4, 1, -4),
+            Position             = UDim2.new(0, 2, 0, 2),
+            BackgroundTransparency = 1,
+            Image                = "rbxassetid://" .. iconId:match("%d+"),
+            ImageColor3          = closeColor,
+            ScaleType            = Enum.ScaleType.Fit,
+            ZIndex               = 4,
+            Parent               = _closeBtnFrame
+        })
+    else
+        New("TextLabel", {
+            Size                 = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text                 = "✕",
+            TextColor3           = closeColor,
+            TextTransparency     = 0.1,
+            Font                 = Enum.Font.GothamBold,
+            TextSize             = 9,
+            ZIndex               = 4,
+            Parent               = _closeBtnFrame
+        })
+    end
+end
+function WindowObj:CreateMinimizeButton(cfg)
+    cfg = cfg or {}
 
-        local onId  = validId(cfg.OnIconId)  and cfg.OnIconId:match("%d+")  or nil
-        local offId = validId(cfg.OffIconId) and cfg.OffIconId:match("%d+") or nil
-
-
-        WindowObj._minCfg = {
-            _onIconId   = onId,
-            _offIconId  = offId,
-            _onFallback  = "+",
-            _offFallback = "-",
-        }
-
-
-        for _, c in ipairs(_minBtnFrame:GetChildren()) do
-            if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
-        end
-
-        if onId or offId then
-
-            local startId = _minimized and (onId or offId) or (offId or onId)
-            New("ImageLabel", {
-                Size                 = UDim2.new(1, -2, 1, -2),
-                Position             = UDim2.new(0, 1, 0, 1),
-                BackgroundTransparency = 1,
-                Image                = "rbxassetid://" .. startId,
-                ImageColor3          = Color3.new(1, 1, 1),
-                ScaleType            = Enum.ScaleType.Fit,
-                ZIndex               = 4,
-                Parent               = _minBtnFrame
-            })
-        else
-            New("TextLabel", {
-                Size                 = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text                 = _minimized and "+" or "─",
-                TextColor3           = Color3.new(1, 1, 1),
-                TextTransparency     = 0.2,
-                Font                 = Enum.Font.GothamBold,
-                TextSize             = 10,
-                ZIndex               = 4,
-                Parent               = _minBtnFrame
-            })
-        end
+    local function validId(id)
+        return type(id) == "string" and id ~= "" and tonumber(id:match("%d+")) ~= nil
     end
 
+    local onId  = validId(cfg.OnIconId)  and cfg.OnIconId:match("%d+")  or nil
+    local offId = validId(cfg.OffIconId) and cfg.OffIconId:match("%d+") or nil
+
+    WindowObj._minCfg = {
+        _onIconId    = onId,
+        _offIconId   = offId,
+        _onFallback  = "+",
+        _offFallback = "─",
+    }
+
+    for _, c in ipairs(_minBtnFrame:GetChildren()) do
+        if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
+    end
+
+    local minColor = Color3.fromRGB(120, 90, 220)
+
+    if onId or offId then
+        local startId = _minimized and (onId or offId) or (offId or onId)
+        New("ImageLabel", {
+            Size                 = UDim2.new(1, -4, 1, -4),
+            Position             = UDim2.new(0, 2, 0, 2),
+            BackgroundTransparency = 1,
+            Image                = "rbxassetid://" .. startId,
+            ImageColor3          = minColor,
+            ScaleType            = Enum.ScaleType.Fit,
+            ZIndex               = 4,
+            Parent               = _minBtnFrame
+        })
+    else
+        New("TextLabel", {
+            Size                 = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text                 = _minimized and "+" or "─",
+            TextColor3           = minColor,
+            TextTransparency     = 0.1,
+            Font                 = Enum.Font.GothamBold,
+            TextSize             = 9,
+            ZIndex               = 4,
+            Parent               = _minBtnFrame
+        })
+    end
+end
     return WindowObj
 end
 
