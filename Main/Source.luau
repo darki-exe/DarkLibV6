@@ -2396,7 +2396,7 @@ end
     return DivObj
 end
 
-        function TabObj:CreateColorPicker(cpCfg, flag)
+function TabObj:CreateColorPicker(cpCfg, flag)
             cpCfg = Merge({
                 Name = "Color Picker",
                 Color = Color3.fromRGB(120, 90, 220),
@@ -2477,38 +2477,15 @@ end
                 BackgroundColor3 = Color3.fromHSV(h, 1, 1),
                 ZIndex = 2,
                 Parent = cpWin
-            }, {
-                UICorner(5),
-                New("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.new(1,1,1)),
-                        ColorSequenceKeypoint.new(1, Color3.new(1,1,1))
-                    }),
-                    Transparency = NumberSequence.new({
-                        NumberSequenceKeypoint.new(0, 0),
-                        NumberSequenceKeypoint.new(1, 1)
-                    }),
-                }),
-            })
+            }, { UICorner(5) })
 
-            local darkOverlay = New("Frame", {
+            local svImage = New("ImageLabel", {
                 Size = UDim2.new(1, 0, 1, 0),
-                BackgroundColor3 = Color3.new(0, 0, 0),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://4155801252",
+                ImageColor3 = Color3.new(1, 1, 1),
                 ZIndex = 3,
                 Parent = satValBg
-            }, {
-                UICorner(5),
-                New("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, Color3.new(0,0,0)),
-                        ColorSequenceKeypoint.new(1, Color3.new(0,0,0))
-                    }),
-                    Transparency = NumberSequence.new({
-                        NumberSequenceKeypoint.new(0, 1),
-                        NumberSequenceKeypoint.new(1, 0)
-                    }),
-                    Rotation = 90
-                })
             })
 
             local svKnob = New("Frame", {
@@ -2638,7 +2615,8 @@ end
                 })
 
                 New("TextLabel", {
-                    Size = UDim2.fromOffset(12, 22),
+                    Size = UDim2.fromOffset(14, 14),
+                    Position = UDim2.new(0, 2, 0.5, -7),
                     BackgroundTransparency = 1,
                     Text = label,
                     TextColor3 = Theme.TextMuted,
@@ -2679,7 +2657,8 @@ end
                 swatch.BackgroundColor3       = col3
                 colorPreview.BackgroundColor3 = col3
                 satValBg.BackgroundColor3     = Color3.fromHSV(h, 1, 1)
-                svKnob.Position               = UDim2.new(1 - s, 0, 1 - v, 0)
+                svImage.ImageColor3           = Color3.new(1, 1, 1)
+                svKnob.Position               = UDim2.new(s, 0, 1 - v, 0)
                 hueKnob.Position              = UDim2.new(h, 0, 0, 0)
                 hexBox.Text = string.format("#%02X%02X%02X", r, g2, b2)
                 rBox.Text = tostring(r)
@@ -2710,7 +2689,7 @@ end
                 if draggingSV then
                     local lx = math.clamp(mouse.X - satValBg.AbsolutePosition.X, 0, satValBg.AbsoluteSize.X)
                     local ly = math.clamp(mouse.Y - satValBg.AbsolutePosition.Y, 0, satValBg.AbsoluteSize.Y)
-                    s = 1 - (lx / satValBg.AbsoluteSize.X)
+                    s = lx / satValBg.AbsoluteSize.X
                     v = 1 - (ly / satValBg.AbsoluteSize.Y)
                     UpdateAll()
                 end
@@ -2853,7 +2832,6 @@ end
 
             return CPObj
         end
-
 
         return TabObj
     end
