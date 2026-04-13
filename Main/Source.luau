@@ -3105,7 +3105,7 @@ end
             task.delay(0.30, function()
                 Tween(keyInputBg, { BackgroundTransparency = 0 }, "slow")
                 Tween(keyBox, { TextTransparency = 0 }, "slow")
-                Tween(keyPasteBtn, { TextTransparency = 0, BackgroundTransparency = 0 }, "slow")
+                Tween(keyPasteBtn, { BackgroundTransparency = 0 }, "slow")
             end)
             task.delay(0.36, function()
                 Tween(keySubmit, { TextTransparency = 0, BackgroundTransparency = 0 }, "slow")
