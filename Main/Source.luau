@@ -684,7 +684,20 @@ function DarkLib:CreateWindow(cfg)
             if not g and gethui then g = gethui():FindFirstChild(name) end
             if g then g:Destroy() end
         end
-        screenGui:Destroy()
+        -- fade-out before destroy
+        Tween(Window, { BackgroundTransparency = 1 }, "med")
+        for _, c in ipairs(Window:GetDescendants()) do
+            if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
+                Tween(c, { TextTransparency = 1, BackgroundTransparency = 1 }, "med")
+            elseif c:IsA("Frame") or c:IsA("ScrollingFrame") then
+                Tween(c, { BackgroundTransparency = 1 }, "med")
+            elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
+                Tween(c, { ImageTransparency = 1, BackgroundTransparency = 1 }, "med")
+            elseif c:IsA("UIStroke") then
+                Tween(c, { Transparency = 1 }, "med")
+            end
+        end
+        task.delay(0.38, function() screenGui:Destroy() end)
     end)
 
     local _minimized = false
@@ -2865,43 +2878,116 @@ end
 
     if cfg.KeySystem then
         local KeySettings = cfg.KeySettings
+        local _keyAttempts   = 0
+        local _keyMaxTries   = KeySettings.MaxAttempts or 5
+        local _keyLocked     = false
+        local _keySubmitting = false
 
+        -- ── fade-in de entrada ──
         local keyScreen = New("Frame", {
             Name = "KeyScreen",
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundColor3 = Theme.BG,
+            BackgroundTransparency = 1,
             ZIndex = 200,
             Parent = Window
         }, { UICorner(10) })
 
-        New("TextLabel", {
+        -- gradient sutil no background
+        New("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 18, 30)),
+                ColorSequenceKeypoint.new(1, Theme.BG),
+            }),
+            Rotation = 135,
+            Parent = keyScreen
+        })
+
+        -- accent bar no topo
+        local keyAccentBar = New("Frame", {
+            Size = UDim2.new(0, 60, 0, 3),
+            Position = UDim2.new(0.5, -30, 0.5, -108),
+            BackgroundColor3 = Theme.Accent,
+            BorderSizePixel = 0,
+            BackgroundTransparency = 1,
+            ZIndex = 202,
+            Parent = keyScreen
+        }, { UICorner(4) })
+
+        -- ícone/logo (opcional via KeySettings.Icon)
+        if KeySettings.Icon and KeySettings.Icon ~= "" then
+            New("ImageLabel", {
+                Size = UDim2.new(0, 38, 0, 38),
+                Position = UDim2.new(0.5, -19, 0.5, -130),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://" .. tostring(KeySettings.Icon),
+                ImageColor3 = Theme.AccentGlow,
+                ScaleType = Enum.ScaleType.Fit,
+                ImageTransparency = 1,
+                ZIndex = 202,
+                Parent = keyScreen
+            })
+        end
+
+        -- título
+        local keyTitle = New("TextLabel", {
             Size = UDim2.new(0, 280, 0, 28),
-            Position = UDim2.new(0.5, -140, 0.5, -58),
+            Position = UDim2.new(0.5, -140, 0.5, -82),
             BackgroundTransparency = 1,
             Text = KeySettings.Title,
             TextColor3 = Theme.Text,
             Font = Enum.Font.GothamBold,
             TextSize = 16,
+            TextTransparency = 1,
             ZIndex = 201,
             Parent = keyScreen
         })
 
-        New("TextLabel", {
-            Size = UDim2.new(0, 280, 0, 18),
-            Position = UDim2.new(0.5, -140, 0.5, -34),
+        -- subtitle
+        local keySubtitle = New("TextLabel", {
+            Size = UDim2.new(0, 280, 0, 16),
+            Position = UDim2.new(0.5, -140, 0.5, -56),
             BackgroundTransparency = 1,
-            Text = KeySettings.Subtitle,
+            Text = KeySettings.Subtitle or "",
             TextColor3 = Theme.TextMuted,
             Font = Enum.Font.Gotham,
             TextSize = 12,
+            TextTransparency = 1,
             ZIndex = 201,
             Parent = keyScreen
         })
 
+        -- descrição (nova)
+        local keyDesc = New("TextLabel", {
+            Size = UDim2.new(0, 280, 0, 14),
+            Position = UDim2.new(0.5, -140, 0.5, -36),
+            BackgroundTransparency = 1,
+            Text = KeySettings.Description or "",
+            TextColor3 = Theme.TextMuted,
+            Font = Enum.Font.Gotham,
+            TextSize = 11,
+            TextTransparency = 1,
+            ZIndex = 201,
+            Parent = keyScreen
+        })
+
+        -- separador
+        local keySep = New("Frame", {
+            Size = UDim2.new(0, 240, 0, 1),
+            Position = UDim2.new(0.5, -120, 0.5, -16),
+            BackgroundColor3 = Theme.Border,
+            BorderSizePixel = 0,
+            BackgroundTransparency = 1,
+            ZIndex = 201,
+            Parent = keyScreen
+        })
+
+        -- input bg
         local keyInputBg = New("Frame", {
-            Size = UDim2.new(0, 280, 0, 36),
-            Position = UDim2.new(0.5, -140, 0.5, 0),
+            Size = UDim2.new(0, 248, 0, 36),
+            Position = UDim2.new(0.5, -124, 0.5, 4),
             BackgroundColor3 = Theme.BG2,
+            BackgroundTransparency = 1,
             ZIndex = 201,
             Parent = keyScreen
         }, {
@@ -2910,71 +2996,262 @@ end
         })
 
         local keyBox = New("TextBox", {
-            Size = UDim2.new(1, -16, 1, 0),
+            Size = UDim2.new(1, -44, 1, 0),
             Position = UDim2.new(0, 10, 0, 0),
             BackgroundTransparency = 1,
-            PlaceholderText = "XXXX-XXXX-XXXX-XXXX",
+            PlaceholderText = KeySettings.Placeholder or "Enter your key...",
             Text = "",
             PlaceholderColor3 = Theme.TextMuted,
             TextColor3 = Theme.Text,
             Font = Enum.Font.Gotham,
             TextSize = 13,
             ClearTextOnFocus = false,
+            TextTransparency = 1,
             ZIndex = 202,
             Parent = keyInputBg
         })
 
+        -- botão paste (clipboard)
+        local keyPasteBtn = New("TextButton", {
+            Size = UDim2.new(0, 32, 0, 24),
+            Position = UDim2.new(1, -36, 0.5, -12),
+            BackgroundColor3 = Theme.BG3,
+            Text = "⎘",
+            TextColor3 = Theme.TextDim,
+            Font = Enum.Font.GothamBold,
+            TextSize = 13,
+            TextTransparency = 1,
+            ZIndex = 203,
+            Parent = keyInputBg
+        }, { UICorner(5) })
+
+        -- linha de botões: Submit + Get Key
+        local keyBtnRow = New("Frame", {
+            Size = UDim2.new(0, 248, 0, 32),
+            Position = UDim2.new(0.5, -124, 0.5, 48),
+            BackgroundTransparency = 1,
+            ZIndex = 201,
+            Parent = keyScreen
+        }, { UIListLayout(8, Enum.FillDirection.Horizontal) })
+
         local keySubmit = New("TextButton", {
-            Size = UDim2.new(0, 280, 0, 32),
-            Position = UDim2.new(0.5, -140, 0.5, 44),
+            Size = UDim2.new(0, 148, 1, 0),
             BackgroundColor3 = Theme.AccentDim,
             Text = "Submit",
             TextColor3 = Theme.Text,
             Font = Enum.Font.GothamBold,
             TextSize = 13,
-            ZIndex = 201,
-            Parent = keyScreen
+            TextTransparency = 1,
+            ZIndex = 202,
+            Parent = keyBtnRow
         }, { UICorner(7) })
 
+        -- botão Get Key (só aparece se KeySettings.KeyLink existir)
+        local keyGetBtn
+        if KeySettings.KeyLink and KeySettings.KeyLink ~= "" then
+            keyGetBtn = New("TextButton", {
+                Size = UDim2.new(0, 92, 1, 0),
+                BackgroundColor3 = Theme.BG3,
+                Text = "Get Key",
+                TextColor3 = Theme.TextDim,
+                Font = Enum.Font.GothamBold,
+                TextSize = 12,
+                TextTransparency = 1,
+                ZIndex = 202,
+                Parent = keyBtnRow
+            }, {
+                UICorner(7),
+                UIStroke(Theme.Border, 1, 0.3),
+            })
+        end
+
         local keyStatus = New("TextLabel", {
-            Size = UDim2.new(0, 280, 0, 18),
-            Position = UDim2.new(0.5, -140, 0.5, 80),
+            Size = UDim2.new(0, 248, 0, 18),
+            Position = UDim2.new(0.5, -124, 0.5, 88),
             BackgroundTransparency = 1,
             Text = "",
             TextColor3 = Theme.Red,
             Font = Enum.Font.Gotham,
             TextSize = 12,
+            TextTransparency = 1,
             ZIndex = 201,
             Parent = keyScreen
         })
 
-        keySubmit.MouseButton1Click:Connect(function()
+        -- ── fade-in de entrada ──
+        local function _keyFadeIn(obj, extraDelay)
+            task.delay(extraDelay or 0, function()
+                if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+                    Tween(obj, { TextTransparency = 0, BackgroundTransparency = obj:IsA("TextButton") and 0 or 1 }, "slow")
+                elseif obj:IsA("Frame") then
+                    Tween(obj, { BackgroundTransparency = 0 }, "slow")
+                elseif obj:IsA("ImageLabel") then
+                    Tween(obj, { ImageTransparency = 0 }, "slow")
+                end
+            end)
+        end
+
+        task.spawn(function()
+            Tween(keyScreen, { BackgroundTransparency = 0 }, "slow")
+            task.delay(0.05, function() _keyFadeIn(keyAccentBar) end)
+            task.delay(0.1,  function()
+                for _, c in ipairs(keyScreen:GetDescendants()) do
+                    if c:IsA("ImageLabel") then Tween(c, { ImageTransparency = 0 }, "slow") end
+                end
+            end)
+            task.delay(0.12, function() _keyFadeIn(keyTitle) end)
+            task.delay(0.18, function() _keyFadeIn(keySubtitle) end)
+            task.delay(0.22, function() _keyFadeIn(keyDesc) end)
+            task.delay(0.26, function() Tween(keySep, { BackgroundTransparency = 0.6 }, "slow") end)
+            task.delay(0.30, function()
+                Tween(keyInputBg, { BackgroundTransparency = 0 }, "slow")
+                Tween(keyBox, { TextTransparency = 0 }, "slow")
+                Tween(keyPasteBtn, { TextTransparency = 0, BackgroundTransparency = 0 }, "slow")
+            end)
+            task.delay(0.36, function()
+                Tween(keySubmit, { TextTransparency = 0, BackgroundTransparency = 0 }, "slow")
+                if keyGetBtn then Tween(keyGetBtn, { TextTransparency = 0, BackgroundTransparency = 0 }, "slow") end
+            end)
+            task.delay(0.42, function() Tween(keyStatus, { TextTransparency = 0 }, "slow") end)
+        end)
+
+        -- ── fade-out e destroy ──
+        local function _keyFadeOut(cb)
+            Tween(keyScreen, { BackgroundTransparency = 1 }, "med")
+            for _, c in ipairs(keyScreen:GetDescendants()) do
+                if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then
+                    Tween(c, { TextTransparency = 1, BackgroundTransparency = 1 }, "med")
+                elseif c:IsA("Frame") then
+                    Tween(c, { BackgroundTransparency = 1 }, "med")
+                elseif c:IsA("ImageLabel") then
+                    Tween(c, { ImageTransparency = 1 }, "med")
+                elseif c:IsA("UIStroke") then
+                    Tween(c, { Transparency = 1 }, "med")
+                end
+            end
+            task.delay(0.38, function()
+                keyScreen:Destroy()
+                if cb then cb() end
+            end)
+        end
+
+        -- ── shake animation no invalid ──
+        local function _shakeInput()
+            local orig = keyInputBg.Position
+            local ox = orig.X.Offset
+            local oy = orig.Y.Offset
+            local offsets = {-7, 7, -5, 5, -3, 3, 0}
+            local t = 0
+            for _, dx in ipairs(offsets) do
+                t = t + 0.045
+                task.delay(t, function()
+                    keyInputBg.Position = UDim2.new(orig.X.Scale, ox + dx, orig.Y.Scale, oy)
+                end)
+            end
+        end
+
+        -- ── lógica de submit ──
+        local function _doSubmit()
+            if _keySubmitting or _keyLocked then return end
             local entered = keyBox.Text
+            if entered == "" then return end
+
+            _keySubmitting = true
+            keySubmit.Text = "Checking..."
+            keySubmit.Active = false
+
             local valid = false
             for _, k in ipairs(KeySettings.Key) do
                 if entered == k then valid = true; break end
             end
-            if valid then
-                keyStatus.TextColor3 = Theme.Green
-                keyStatus.Text = "Key accepted!"
-                task.delay(0.5, function()
-                    Tween(keyScreen, { BackgroundTransparency = 1 }, "slow")
-                    for _, c in ipairs(keyScreen:GetDescendants()) do
-                        if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then
-                            Tween(c, { TextTransparency = 1 })
+
+            task.delay(0.3, function() -- leve delay pra dar sensação de verificação
+                if valid then
+                    keyStatus.TextColor3 = Theme.Green
+                    keyStatus.Text = "Key accepted!"
+                    task.delay(0.5, function()
+                        _keyFadeOut(function()
+                            DarkLib:Notify({
+                                Title = "Access Granted",
+                                Content = KeySettings.Title .. " unlocked.",
+                                Type = "success",
+                                Duration = 4
+                            })
+                        end)
+                    end)
+                else
+                    _keyAttempts = _keyAttempts + 1
+                    _keySubmitting = false
+                    keySubmit.Text = "Submit"
+                    keySubmit.Active = true
+
+                    _shakeInput()
+                    Tween(keyInputBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Red, Transparency = 0 })
+
+                    local remaining = _keyMaxTries - _keyAttempts
+                    if remaining <= 0 then
+                        _keyLocked = true
+                        local lockSecs = KeySettings.LockDuration or 30
+                        keyStatus.TextColor3 = Theme.Red
+                        keySubmit.Active = false
+
+                        local countdown = lockSecs
+                        local function _tick()
+                            if countdown <= 0 then
+                                _keyLocked = false
+                                _keyAttempts = 0
+                                keySubmit.Active = true
+                                keySubmit.Text = "Submit"
+                                keyStatus.Text = ""
+                                Tween(keyInputBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border, Transparency = 0.3 })
+                                return
+                            end
+                            keyStatus.Text = ("Too many attempts. Wait %ds"):format(countdown)
+                            keySubmit.Text = ("%ds"):format(countdown)
+                            countdown = countdown - 1
+                            task.delay(1, _tick)
                         end
+                        _tick()
+                    else
+                        keyStatus.TextColor3 = Theme.Red
+                        keyStatus.Text = ("Invalid key! %d attempt%s left"):format(remaining, remaining == 1 and "" or "s")
+                        task.delay(1.4, function()
+                            Tween(keyInputBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border, Transparency = 0.3 })
+                            if keyStatus.Text:find("attempt") then keyStatus.Text = "" end
+                        end)
                     end
-                    task.delay(0.55, function() keyScreen:Destroy() end)
-                end)
-            else
-                keyStatus.Text = "Invalid key!"
-                Tween(keyInputBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Red, Transparency = 0 })
-                task.delay(1.2, function()
-                    Tween(keyInputBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border, Transparency = 0.3 })
-                    keyStatus.Text = ""
-                end)
+                end
+            end)
+        end
+
+        keySubmit.MouseButton1Click:Connect(_doSubmit)
+
+        -- Enter pra confirmar
+        keyBox.FocusLost:Connect(function(enter)
+            if enter then _doSubmit() end
+        end)
+
+        -- Paste do clipboard
+        keyPasteBtn.MouseButton1Click:Connect(function()
+            local ok, clip = pcall(getclipboard)
+            if ok and clip and clip ~= "" then
+                keyBox.Text = clip
+                Tween(keyPasteBtn, { BackgroundColor3 = Theme.AccentDim }, "fast")
+                task.delay(0.4, function() Tween(keyPasteBtn, { BackgroundColor3 = Theme.BG3 }, "med") end)
             end
         end)
+
+        -- Get Key link
+        if keyGetBtn and KeySettings.KeyLink then
+            keyGetBtn.MouseButton1Click:Connect(function()
+                local ok, _ = pcall(setclipboard, KeySettings.KeyLink)
+                if ok then
+                    local prev = keyGetBtn.Text
+                    keyGetBtn.Text = "Copied!"
+                    task.delay(1.5, function() keyGetBtn.Text = prev end)
+                end
+            end)
+        end
     end
 
     function WindowObj:CreateCloseButton(cfg2)
