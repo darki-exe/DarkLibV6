@@ -1064,7 +1064,7 @@ function DarkLib:CreateWindow(cfg)
         Text = "",
         TextColor3 = Theme.TextMuted,
         Font = Enum.Font.GothamBold,
-        TextSize = 12,
+        TextSize = 0,
         TextXAlignment = Enum.TextXAlignment.Right,
         TextTruncate = Enum.TextTruncate.AtEnd,
         ZIndex = 202,
@@ -1080,8 +1080,8 @@ function DarkLib:CreateWindow(cfg)
 
             _lockIcon = New("ImageLabel", {
                 Size = UDim2.fromOffset(20, 20),
-                Position = UDim2.new(0.5, 5, 0.5, 0),
-                AnchorPoint = Vector2.new(0, 0.5),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5),
                 BackgroundTransparency = 1,
                 Image = "rbxassetid://" .. _LOCKED_ID,
                 ImageColor3 = Theme.AccentGlow,
