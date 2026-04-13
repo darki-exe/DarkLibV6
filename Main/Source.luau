@@ -1057,8 +1057,9 @@ function DarkLib:CreateWindow(cfg)
     })
 
     local _lockTooltip = New("TextLabel", {
-        Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(0.5, -110, 0, 0),
+        Size = UDim2.new(0, 200, 0, 20),
+        Position = UDim2.new(0.5, -118, 0.5, -10),
+        AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         Text = "",
         TextColor3 = Theme.TextMuted,
@@ -1079,7 +1080,7 @@ function DarkLib:CreateWindow(cfg)
 
             _lockIcon = New("ImageLabel", {
                 Size = UDim2.fromOffset(20, 20),
-                Position = UDim2.new(0.5, -86, 0.5, -10),
+                Position = UDim2.new(0.5, -90, 0.5, -10),
                 AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundTransparency = 1,
                 Image = "rbxassetid://" .. _LOCKED_ID,
@@ -1104,14 +1105,14 @@ function DarkLib:CreateWindow(cfg)
             _lockTooltip.Visible = false
 
             if _lockIcon then
-                local t1 = TS:Create(_lockIcon, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                local t1 = TS:Create(_lockIcon, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                     Position = UDim2.new(0.5, -12, 0.5, -12),
                     Size = UDim2.fromOffset(24, 24),
                 })
                 t1:Play()
                 t1.Completed:Wait()
 
-                local t2 = TS:Create(_lockIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
+                local t2 = TS:Create(_lockIcon, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {
                     ImageTransparency = 1
                 })
                 t2:Play()
@@ -1119,25 +1120,25 @@ function DarkLib:CreateWindow(cfg)
 
                 _lockIcon.Image = "rbxassetid://" .. _UNLOCKED_ID
 
-                local t3 = TS:Create(_lockIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
+                local t3 = TS:Create(_lockIcon, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {
                     ImageTransparency = 0
                 })
                 t3:Play()
                 t3.Completed:Wait()
 
-                TS:Create(_lockIcon, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-                    Position = UDim2.new(0.5, -12, 0.5, 6),
+                TS:Create(_lockIcon, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+                    Position = UDim2.new(0.5, -12, 0.5, 24),
                     ImageTransparency = 1,
                 }):Play()
-                Tween(_lockOverlay, { BackgroundTransparency = 1 }, "fast")
+                Tween(_lockOverlay, { BackgroundTransparency = 1 }, "slow")
 
-                task.delay(0.18, function()
+                task.delay(0.65, function()
                     _lockOverlay.Visible = false
                     if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
                 end)
             else
-                Tween(_lockOverlay, { BackgroundTransparency = 1 }, "fast")
-                task.delay(0.25, function()
+                Tween(_lockOverlay, { BackgroundTransparency = 1 }, "slow")
+                task.delay(0.6, function()
                     _lockOverlay.Visible = false
                 end)
             end
@@ -2912,7 +2913,8 @@ end
             Size = UDim2.new(1, -16, 1, 0),
             Position = UDim2.new(0, 10, 0, 0),
             BackgroundTransparency = 1,
-            PlaceholderText = "Enter key...",
+            PlaceholderText = "XXXX-XXXX-XXXX-XXXX",
+            Text = "",
             PlaceholderColor3 = Theme.TextMuted,
             TextColor3 = Theme.Text,
             Font = Enum.Font.Gotham,
