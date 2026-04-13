@@ -1080,7 +1080,7 @@ function DarkLib:CreateWindow(cfg)
 
             _lockIcon = New("ImageLabel", {
                 Size = UDim2.fromOffset(20, 20),
-                Position = UDim2.new(0.5, 0, 0.5, 0),
+                Position = UDim2.new(0.5, -12, 0.5, 0),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 BackgroundTransparency = 1,
                 Image = "rbxassetid://" .. _LOCKED_ID,
