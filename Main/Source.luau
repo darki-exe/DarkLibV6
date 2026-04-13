@@ -2398,14 +2398,14 @@ function DarkLib:CreateWindow(cfg)
     -- ── CreateCloseButton ────────────────────────────────────────────────────
     -- Reconfigures the close button appearance.
     -- cfg.IconId : string  rbxassetid number (e.g. "7743870040")
-    --                      nil / invalid  →  falls back to "✕" text
+    --                      nil / invalid  →  falls back to "X" text
     function WindowObj:CreateCloseButton(cfg)
         cfg = cfg or {}
         local iconId = cfg.IconId
         local validIcon = type(iconId) == "string" and iconId ~= ""
             and tonumber(iconId:match("%d+")) ~= nil
 
-        -- clear existing icon/text children
+
         for _, c in ipairs(_closeBtnFrame:GetChildren()) do
             if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
         end
@@ -2425,7 +2425,7 @@ function DarkLib:CreateWindow(cfg)
             New("TextLabel", {
                 Size                 = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
-                Text                 = "✕",
+                Text                 = "X",
                 TextColor3           = Color3.new(1, 1, 1),
                 TextTransparency     = 0.2,
                 Font                 = Enum.Font.GothamBold,
@@ -2440,7 +2440,7 @@ function DarkLib:CreateWindow(cfg)
     -- Reconfigures the minimize button appearance and its two icon states.
     -- cfg.OnIconId  : string  icon shown when window IS minimized   (restore state)
     -- cfg.OffIconId : string  icon shown when window is NOT minimized (normal state)
-    -- Both nil / invalid  →  uses "─" / "+" text fallbacks
+    -- Both nil / invalid  →  uses "-"" / "+" text fallbacks
     function WindowObj:CreateMinimizeButton(cfg)
         cfg = cfg or {}
 
@@ -2451,21 +2451,21 @@ function DarkLib:CreateWindow(cfg)
         local onId  = validId(cfg.OnIconId)  and cfg.OnIconId:match("%d+")  or nil
         local offId = validId(cfg.OffIconId) and cfg.OffIconId:match("%d+") or nil
 
-        -- store for state-switch callback
+
         WindowObj._minCfg = {
             _onIconId   = onId,
             _offIconId  = offId,
             _onFallback  = "+",
-            _offFallback = "─",
+            _offFallback = "-",
         }
 
-        -- clear existing icon/text children
+
         for _, c in ipairs(_minBtnFrame:GetChildren()) do
             if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
         end
 
         if onId or offId then
-            -- use image; start with the current state icon
+
             local startId = _minimized and (onId or offId) or (offId or onId)
             New("ImageLabel", {
                 Size                 = UDim2.new(1, -2, 1, -2),
