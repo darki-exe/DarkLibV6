@@ -1,11 +1,3 @@
---[[
-    DarkLib V6
-    by darkmoonhub
-
-    A complete, original Roblox executor UI library.
-    Built from scratch for V6 — cleaner internals, redesigned visuals.
-]]
-
 local DarkLib = {
     Options = {},
     Flags = {},
@@ -13,9 +5,9 @@ local DarkLib = {
 }
 
 -- Services
-local UIS    = game:GetService("UserInputService")
-local TS     = game:GetService("TweenService")
-local RS     = game:GetService("RunService")
+local UIS     = game:GetService("UserInputService")
+local TS      = game:GetService("TweenService")
+local RS      = game:GetService("RunService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
@@ -36,9 +28,9 @@ local function Merge(defaults, passed)
     return passed
 end
 
-local _ti_fast  = TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-local _ti_med   = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-local _ti_slow  = TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+local _ti_fast = TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local _ti_med  = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local _ti_slow = TweenInfo.new(0.55, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 
 local function Tween(obj, props, speed)
     local info = (speed == "fast" and _ti_fast) or (speed == "slow" and _ti_slow) or _ti_med
@@ -141,6 +133,31 @@ local function UIPadding(t, b, l, r)
     })
 end
 
+-- ─── ScreenGui helper (para popups flutuantes) ────────────────────────────────
+
+local function MakeOverlayGui(name, displayOrder)
+    local existing = CoreGui:FindFirstChild(name)
+    if existing then existing:Destroy() end
+
+    local sg = New("ScreenGui", {
+        Name = name,
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        DisplayOrder = displayOrder or 9000,
+    })
+
+    if gethui then
+        sg.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(sg)
+        sg.Parent = CoreGui
+    else
+        sg.Parent = CoreGui
+    end
+
+    return sg
+end
+
 -- ─── Draggable ───────────────────────────────────────────────────────────────
 
 local function MakeDraggable(handle, target)
@@ -217,7 +234,7 @@ function DarkLib:Notify(data)
         Title = "Notification",
         Content = "",
         Duration = nil,
-        Type = "info" -- info | success | warn | error
+        Type = "info"
     }, data)
 
     if not NotifHolder then SetupNotifHolder() end
@@ -243,7 +260,7 @@ function DarkLib:Notify(data)
             UIPadding(10, 10, 12, 12),
         })
 
-        local bar = New("Frame", {
+        New("Frame", {
             Name = "Bar",
             Size = UDim2.new(0, 3, 1, -16),
             Position = UDim2.new(0, 0, 0, 8),
@@ -362,7 +379,7 @@ function DarkLib:CreateWindow(cfg)
     }, { UICorner(10) })
 
     -- Shadow
-    local shadow = New("ImageLabel", {
+    New("ImageLabel", {
         Name = "Shadow",
         Size = UDim2.new(1, 40, 1, 40),
         Position = UDim2.new(0, -20, 0, -20),
@@ -391,7 +408,6 @@ function DarkLib:CreateWindow(cfg)
         UIStroke(Theme.Border, 1, 0.5),
     })
 
-    -- Bottom of top bar cover (remove bottom radius)
     New("Frame", {
         Size = UDim2.new(1, 0, 0.5, 0),
         Position = UDim2.new(0, 0, 0.5, 0),
@@ -401,7 +417,6 @@ function DarkLib:CreateWindow(cfg)
         Parent = TopBar
     })
 
-    -- Logo accent line
     New("Frame", {
         Name = "AccentLine",
         Size = UDim2.new(1, 0, 0, 2),
@@ -426,7 +441,7 @@ function DarkLib:CreateWindow(cfg)
         Parent = TopBar
     })
 
-    local SubLabel = New("TextLabel", {
+    New("TextLabel", {
         Name = "Subtitle",
         Size = UDim2.new(0, 200, 1, 0),
         Position = UDim2.new(0, 14 + TitleLabel.TextBounds.X + 8, 0, 0),
@@ -440,76 +455,76 @@ function DarkLib:CreateWindow(cfg)
         Parent = TopBar
     })
 
-    -- ── Control button factory ──────────────────────────────────────────────
+    -- ── Control button factory ──
     local _ctrlOffset = -12
 
-local function MakeCtrlBtn(accentColor, iconId, fallbackText)
-    local xpos = _ctrlOffset
-    _ctrlOffset = _ctrlOffset - 30
+    local function MakeCtrlBtn(accentColor, iconId, fallbackText)
+        local xpos = _ctrlOffset
+        _ctrlOffset = _ctrlOffset - 30
 
-    local btn = New("Frame", {
-        Size             = UDim2.fromOffset(22, 14),
-        Position         = UDim2.new(1, xpos - 22, 0.5, -7),
-        BackgroundColor3 = Theme.BG3,
-        ZIndex           = 3,
-        Parent           = TopBar
-    }, {
-        UICorner(4),
-        UIStroke(accentColor, 1, 0.55),
-    })
-
-    local validIcon = type(iconId) == "string" and iconId ~= ""
-        and tonumber(iconId:match("%d+")) ~= nil
-
-    if validIcon then
-        New("ImageLabel", {
-            Size                 = UDim2.new(1, -4, 1, -4),
-            Position             = UDim2.new(0, 2, 0, 2),
-            BackgroundTransparency = 1,
-            Image                = "rbxassetid://" .. iconId:match("%d+"),
-            ImageColor3          = accentColor,
-            ScaleType            = Enum.ScaleType.Fit,
-            ZIndex               = 4,
-            Parent               = btn
+        local btn = New("Frame", {
+            Size     = UDim2.fromOffset(22, 22),
+            Position = UDim2.new(1, xpos - 22, 0.5, -11),
+            BackgroundColor3 = Theme.BG3,
+            ZIndex           = 3,
+            Parent           = TopBar
+        }, {
+            UICorner(4),
+            UIStroke(accentColor, 1, 0.55),
         })
-    else
-        New("TextLabel", {
+
+        local validIcon = type(iconId) == "string" and iconId ~= ""
+            and tonumber(iconId:match("%d+")) ~= nil
+
+        if validIcon then
+            New("ImageLabel", {
+                Size                 = UDim2.new(1, -4, 1, -4),
+                Position             = UDim2.new(0, 2, 0, 2),
+                BackgroundTransparency = 1,
+                Image                = "rbxassetid://" .. iconId:match("%d+"),
+                ImageColor3          = accentColor,
+                ScaleType            = Enum.ScaleType.Fit,
+                ZIndex               = 4,
+                Parent               = btn
+            })
+        else
+            New("TextLabel", {
+                Size                 = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text                 = fallbackText,
+                TextColor3           = accentColor,
+                TextTransparency     = 0.1,
+                Font                 = Enum.Font.GothamBold,
+                TextSize             = 9,
+                ZIndex               = 4,
+                Parent               = btn
+            })
+        end
+
+        local interact = New("TextButton", {
             Size                 = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
-            Text                 = fallbackText,
-            TextColor3           = accentColor,
-            TextTransparency     = 0.1,
-            Font                 = Enum.Font.GothamBold,
-            TextSize             = 9,
-            ZIndex               = 4,
+            Text                 = "",
+            ZIndex               = 5,
             Parent               = btn
         })
+
+        interact.MouseEnter:Connect(function()
+            Tween(btn, { BackgroundColor3 = accentColor:Lerp(Theme.BG, 0.72) }, "fast")
+            local stroke = btn:FindFirstChildWhichIsA("UIStroke")
+            if stroke then Tween(stroke, { Transparency = 0 }, "fast") end
+        end)
+        interact.MouseLeave:Connect(function()
+            Tween(btn, { BackgroundColor3 = Theme.BG3 }, "fast")
+            local stroke = btn:FindFirstChildWhichIsA("UIStroke")
+            if stroke then Tween(stroke, { Transparency = 0.55 }, "fast") end
+        end)
+
+        return btn, interact
     end
 
-    local interact = New("TextButton", {
-        Size                 = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text                 = "",
-        ZIndex               = 5,
-        Parent               = btn
-    })
-
-    interact.MouseEnter:Connect(function()
-        Tween(btn, { BackgroundColor3 = accentColor:Lerp(Theme.BG, 0.72) }, "fast")
-        local stroke = btn:FindFirstChildWhichIsA("UIStroke")
-        if stroke then Tween(stroke, { Transparency = 0 }, "fast") end
-    end)
-    interact.MouseLeave:Connect(function()
-        Tween(btn, { BackgroundColor3 = Theme.BG3 }, "fast")
-        local stroke = btn:FindFirstChildWhichIsA("UIStroke")
-        if stroke then Tween(stroke, { Transparency = 0.55 }, "fast") end
-    end)
-
-    return btn, interact
-end
-
-local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(190, 60, 90),  nil, "✕")
-local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, "─")
+    local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(190, 60, 90),  nil, "✕")
+    local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, "─")
 
     -- ── Navigation sidebar ──
     local NavWidth = 140
@@ -523,7 +538,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         Parent = Window
     }, { UICorner(10) })
 
-    -- Cover top-right radius of nav
     New("Frame", {
         Size = UDim2.new(0.5, 0, 1, 0),
         Position = UDim2.new(0.5, 0, 0, 0),
@@ -541,7 +555,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         Parent = NavPanel
     })
 
-    -- Nav divider
     New("Frame", {
         Name = "Divider",
         Size = UDim2.new(0, 1, 1, -24),
@@ -552,7 +565,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         Parent = NavPanel
     })
 
-    -- Player info strip at bottom of nav
     local PlayerStrip = New("Frame", {
         Name = "PlayerStrip",
         Size = UDim2.new(1, 0, 0, 44),
@@ -604,7 +616,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         if ok then pAvatar.Image = img end
     end)
 
-    -- Tab button container in nav
     local TabButtonList = New("Frame", {
         Name = "TabList",
         Size = UDim2.new(1, 0, 1, -44),
@@ -628,7 +639,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         Parent = Window
     }, { UICorner(10) })
 
-    -- Cover left radius
     New("Frame", {
         Size = UDim2.new(0.5, 0, 1, 0),
         BackgroundColor3 = Theme.Surface,
@@ -636,7 +646,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         ZIndex = 2,
         Parent = ContentArea
     })
-    -- Cover top radius
     New("Frame", {
         Size = UDim2.new(1, 0, 0.5, 0),
         BackgroundColor3 = Theme.Surface,
@@ -645,7 +654,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         Parent = ContentArea
     })
 
-    -- ── Page stack ──
     local Pages = New("Frame", {
         Name = "Pages",
         Size = UDim2.new(1, 0, 1, 0),
@@ -670,6 +678,12 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
 
     -- ── Close / Minimize ──
     closeBtn.MouseButton1Click:Connect(function()
+        -- destroy all overlay GUIs for this window
+        for _, name in ipairs({"DarkLibV6_DDPopup", "DarkLibV6_CPPopup"}) do
+            local g = CoreGui:FindFirstChild(name)
+            if not g and gethui then g = gethui():FindFirstChild(name) end
+            if g then g:Destroy() end
+        end
         screenGui:Destroy()
     end)
 
@@ -705,7 +719,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         _setMinIcon(_minimized)
     end)
 
-    -- ── Hide/show bind ──
     UIS.InputBegan:Connect(function(input, gpe)
         if gpe then return end
         if input.KeyCode == cfg.HideBind then
@@ -787,6 +800,61 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         end)
     end
 
+    function WindowObj:SetBackgroundTransparency(alpha)
+        Tween(Window, { BackgroundTransparency = math.clamp(alpha, 0, 1) }, "fast")
+    end
+
+    local _acrylicEnabled = false
+    local _acrylicViewport
+    local _acrylicCamera
+    local _acrylicConnection
+
+    function WindowObj:SetAcrylic(enabled)
+        if enabled == _acrylicEnabled then return end
+        _acrylicEnabled = enabled
+
+        if enabled then
+            _acrylicCamera = Instance.new("Camera")
+            _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
+
+            _acrylicViewport = New("ViewportFrame", {
+                Size                 = UDim2.new(1, 0, 1, 0),
+                Position             = UDim2.new(0, 0, 0, 0),
+                BackgroundTransparency = 1,
+                ImageTransparency    = 0.3,
+                CurrentCamera        = _acrylicCamera,
+                ZIndex               = 0,
+                Parent               = Window
+            }, { UICorner(10) })
+
+            for _, obj in ipairs(workspace:GetChildren()) do
+                if obj:IsA("BasePart") or obj:IsA("Model") then
+                    local clone = obj:Clone()
+                    clone.Parent = _acrylicViewport
+                end
+            end
+
+            _acrylicConnection = RS.RenderStepped:Connect(function()
+                _acrylicCamera.CFrame = workspace.CurrentCamera.CFrame
+                _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
+            end)
+
+            _acrylicCamera.Parent = _acrylicViewport
+            Tween(Window, { BackgroundTransparency = 0.55 }, "med")
+        else
+            if _acrylicConnection then
+                _acrylicConnection:Disconnect()
+                _acrylicConnection = nil
+            end
+            if _acrylicViewport then
+                _acrylicViewport:Destroy()
+                _acrylicViewport = nil
+            end
+            _acrylicCamera = nil
+            Tween(Window, { BackgroundTransparency = 0 }, "med")
+        end
+    end
+
     -- ─────────────────────────────────────────────────────────────────────────
     -- ── CreateTab ────────────────────────────────────────────────────────────
     -- ─────────────────────────────────────────────────────────────────────────
@@ -799,7 +867,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
 
         local isFirst = #WindowObj._tabs == 0
 
-        -- ── Nav button ──
         local NavBtn = New("Frame", {
             Name = tabCfg.Name .. "_NavBtn",
             Size = UDim2.new(1, -8, 0, 30),
@@ -844,7 +911,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             Parent = NavBtn
         })
 
-        -- ── Page scroll frame ──
         local Page = New("ScrollingFrame", {
             Name = tabCfg.Name .. "_Page",
             Size = UDim2.new(1, 0, 1, 0),
@@ -862,11 +928,9 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             UIPadding(10, 10, 10, 14)
         })
 
-        -- ── Activate function ──
         local function Activate(animate)
             if WindowObj._currentTab == tabCfg.Name then return end
 
-            -- Deactivate old
             for _, t in ipairs(WindowObj._tabs) do
                 t._page.Visible = false
                 Tween(t._navbtn, { BackgroundTransparency = 1 })
@@ -910,7 +974,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             task.defer(function() Activate(false) end)
         end
 
-        -- ── Helper: auto-resize canvas ──
         local function AutoCanvas()
             local layout = Page:FindFirstChildWhichIsA("UIListLayout")
             if layout then
@@ -918,8 +981,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             end
         end
 
-        -- ─────────────────────────────────────────────────────────────────────
-        -- Common element spawner setup
         local function SpawnFadeIn(frame)
             frame.BackgroundTransparency = 1
             for _, c in ipairs(frame:GetDescendants()) do
@@ -971,65 +1032,102 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             return f
         end
 
-        -- ─── CreateSection ───────────────────────────────────────────────────
-        function TabObj:CreateSection(name)
-            local SecHeader = New("Frame", {
-                Size = UDim2.new(1, 0, 0, 22),
-                BackgroundTransparency = 1,
-                ZIndex = 4,
-                Parent = Page
-            })
+        -- ─── MakeLockable ────────────────────────────────────────────────────
+        local function MakeLockable(compObj, row)
+            local _locked = false
+            local _lockIcon = nil
 
-            New("TextLabel", {
-                Size = UDim2.new(1, -12, 1, 0),
-                Position = UDim2.new(0, 8, 0, 0),
+            local _lockOverlay = New("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundColor3 = Theme.BG,
                 BackgroundTransparency = 1,
-                Text = (name or "Section"):upper(),
-                TextColor3 = Theme.AccentGlow,
-                Font = Enum.Font.GothamBold,
-                TextSize = 10,
+                ZIndex = 50,
+                Visible = false,
+                Parent = row
+            }, { UICorner(7) })
+
+            local _lockTooltip = New("TextLabel", {
+                Size = UDim2.new(1, -40, 1, 0),
+                Position = UDim2.new(0, 12, 0, 0),
+                BackgroundTransparency = 1,
+                Text = "",
+                TextColor3 = Theme.TextMuted,
+                Font = Enum.Font.Gotham,
+                TextSize = 11,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex = 5,
-                Parent = SecHeader
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                ZIndex = 52,
+                Visible = false,
+                Parent = _lockOverlay
             })
 
-            New("Frame", {
-                Size = UDim2.new(1, -12, 0, 1),
-                Position = UDim2.new(0, 8, 1, -1),
-                BackgroundColor3 = Theme.Border,
-                BorderSizePixel = 0,
-                ZIndex = 4,
-                Parent = SecHeader
+            New("TextButton", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "",
+                ZIndex = 51,
+                Parent = _lockOverlay
             })
 
-            AutoCanvas()
+            function compObj:ToggleLock(locked, iconOrText, tooltipText)
+                _locked = locked
+                if locked then
+                    if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
 
-            local SectionObj = {}
+                    if iconOrText ~= nil and tostring(iconOrText) ~= "" then
+                        local str = tostring(iconOrText)
+                        if str:match("^%d+$") then
+                            _lockIcon = New("ImageLabel", {
+                                Size = UDim2.fromOffset(18, 18),
+                                Position = UDim2.new(1, -26, 0.5, -9),
+                                BackgroundTransparency = 1,
+                                Image = "rbxassetid://" .. str,
+                                ImageColor3 = Theme.TextMuted,
+                                ScaleType = Enum.ScaleType.Fit,
+                                ZIndex = 53,
+                                Parent = _lockOverlay
+                            })
+                        else
+                            _lockIcon = New("TextLabel", {
+                                Size = UDim2.fromOffset(22, 22),
+                                Position = UDim2.new(1, -28, 0.5, -11),
+                                BackgroundTransparency = 1,
+                                Text = str,
+                                TextColor3 = Theme.TextMuted,
+                                Font = Enum.Font.GothamBold,
+                                TextSize = 14,
+                                ZIndex = 53,
+                                Parent = _lockOverlay
+                            })
+                        end
+                    end
 
-            -- Sections forward everything to Tab methods
-            local mt = {}
-            mt.__index = function(_, k)
-                return TabObj[k]
+                    if tooltipText ~= nil and tostring(tooltipText) ~= "" then
+                        _lockTooltip.Text = tostring(tooltipText)
+                        _lockTooltip.Visible = true
+                    else
+                        _lockTooltip.Visible = false
+                    end
+
+                    _lockOverlay.Visible = true
+                    Tween(_lockOverlay, { BackgroundTransparency = 0.5 })
+                else
+                    Tween(_lockOverlay, { BackgroundTransparency = 1 })
+                    task.delay(0.35, function()
+                        _lockOverlay.Visible = false
+                        if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
+                        _lockTooltip.Visible = false
+                    end)
+                end
             end
-            setmetatable(SectionObj, mt)
 
-            return SectionObj
+            function compObj:IsLocked()
+                return _locked
+            end
         end
 
-        -- ─── CreateDivider ────────────────────────────────────────────────────
-        function TabObj:CreateDivider()
-            New("Frame", {
-                Size = UDim2.new(1, -16, 0, 1),
-                BackgroundColor3 = Theme.Border,
-                BorderSizePixel = 0,
-                ZIndex = 4,
-                Parent = Page
-            })
-            AutoCanvas()
-        end
-
-        -- ─── CreateButton ─────────────────────────────────────────────────────
-        function TabObj:CreateButton(btnCfg)
+        -- ─── CreateButton ────────────────────────────────────────────────────
+        function TabObj:CreateButton(btnCfg, flag)
             btnCfg = Merge({
                 Name = "Button",
                 Description = nil,
@@ -1039,10 +1137,9 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             local h = (btnCfg.Description ~= nil and btnCfg.Description ~= "") and 52 or 36
             local row = BaseRow(h)
 
-            local labelY = (h == 52) and 0.28 or 0.5
             local nameLabel = New("TextLabel", {
                 Size = UDim2.new(1, -20, 0, 18),
-                Position = UDim2.new(0, 12, labelY, -9),
+                Position = UDim2.new(0, 12, 0.5, -9),
                 BackgroundTransparency = 1,
                 Text = btnCfg.Name,
                 TextColor3 = Theme.Text,
@@ -1054,6 +1151,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             })
 
             if btnCfg.Description ~= nil and btnCfg.Description ~= "" then
+                nameLabel.Position = UDim2.new(0, 12, 0.28, -9)
                 New("TextLabel", {
                     Size = UDim2.new(1, -20, 0, 14),
                     Position = UDim2.new(0, 12, 0, 30),
@@ -1063,24 +1161,10 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                     Font = Enum.Font.Gotham,
                     TextSize = 11,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    TextWrapped = true,
                     ZIndex = 5,
                     Parent = row
                 })
             end
-
-            -- Right arrow glyph
-            New("TextLabel", {
-                Size = UDim2.new(0, 18, 1, 0),
-                Position = UDim2.new(1, -22, 0, 0),
-                BackgroundTransparency = 1,
-                Text = "›",
-                TextColor3 = Theme.TextMuted,
-                Font = Enum.Font.GothamBold,
-                TextSize = 18,
-                ZIndex = 5,
-                Parent = row
-            })
 
             local interact = New("TextButton", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -1090,30 +1174,23 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 Parent = row
             })
 
-            SpawnFadeIn(row)
-            AutoCanvas()
-
-            local hover = false
-            interact.MouseEnter:Connect(function()
-                hover = true
-                Tween(row:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.BorderHover })
-            end)
-            interact.MouseLeave:Connect(function()
-                hover = false
-                Tween(row:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border })
-            end)
-
             interact.MouseButton1Click:Connect(function()
-                Tween(row, { BackgroundColor3 = Theme.AccentDim }, "fast")
-                task.delay(0.18, function()
-                    Tween(row, { BackgroundColor3 = Theme.BG3 }, "fast")
-                end)
                 local ok, err = SafeCall(btnCfg.Callback)
                 if not ok then
                     ErrorFlash(row, btnCfg.Name, Theme.BG3, nameLabel)
                     warn("[DarkLibV6] Button '" .. btnCfg.Name .. "' error: " .. tostring(err))
                 end
             end)
+
+            interact.MouseEnter:Connect(function()
+                Tween(row:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.BorderHover })
+            end)
+            interact.MouseLeave:Connect(function()
+                Tween(row:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border })
+            end)
+
+            SpawnFadeIn(row)
+            AutoCanvas()
 
             local BtnObj = { Settings = btnCfg }
             function BtnObj:Set(newCfg)
@@ -1122,14 +1199,16 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 nameLabel.Text = btnCfg.Name
             end
             function BtnObj:Destroy()
-                row:Destroy()
-                AutoCanvas()
+                row:Destroy(); AutoCanvas()
             end
+            MakeLockable(BtnObj, row)
+
+            if flag then DarkLib.Options[flag] = BtnObj end
 
             return BtnObj
         end
 
-        -- ─── CreateToggle ─────────────────────────────────────────────────────
+        -- ─── CreateToggle ────────────────────────────────────────────────────
         function TabObj:CreateToggle(togCfg, flag)
             togCfg = Merge({
                 Name = "Toggle",
@@ -1141,10 +1220,9 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             local h = (togCfg.Description ~= nil and togCfg.Description ~= "") and 52 or 36
             local row = BaseRow(h)
 
-            local labelY = (h == 52) and 0.28 or 0.5
             local nameLabel = New("TextLabel", {
                 Size = UDim2.new(1, -60, 0, 18),
-                Position = UDim2.new(0, 12, labelY, -9),
+                Position = UDim2.new(0, 12, 0.5, -9),
                 BackgroundTransparency = 1,
                 Text = togCfg.Name,
                 TextColor3 = Theme.Text,
@@ -1156,6 +1234,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             })
 
             if togCfg.Description ~= nil and togCfg.Description ~= "" then
+                nameLabel.Position = UDim2.new(0, 12, 0.28, -9)
                 New("TextLabel", {
                     Size = UDim2.new(1, -60, 0, 14),
                     Position = UDim2.new(0, 12, 0, 30),
@@ -1165,31 +1244,31 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                     Font = Enum.Font.Gotham,
                     TextSize = 11,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    TextWrapped = true,
                     ZIndex = 5,
                     Parent = row
                 })
             end
 
-            -- Toggle pill
-            local pill = New("Frame", {
-                Size = UDim2.fromOffset(36, 20),
-                Position = UDim2.new(1, -46, 0.5, -10),
+            local track = New("Frame", {
+                Name = "Track",
+                Size = UDim2.fromOffset(34, 18),
+                Position = UDim2.new(1, -46, 0.5, -9),
                 BackgroundColor3 = Theme.BG,
                 ZIndex = 5,
                 Parent = row
             }, {
-                UICorner(10),
+                UICorner(9),
                 UIStroke(Theme.Border, 1, 0.3),
             })
 
             local knob = New("Frame", {
-                Size = UDim2.fromOffset(14, 14),
-                Position = UDim2.new(0, 3, 0.5, -7),
+                Name = "Knob",
+                Size = UDim2.fromOffset(12, 12),
+                Position = UDim2.new(0, 3, 0.5, -6),
                 BackgroundColor3 = Theme.TextMuted,
                 ZIndex = 6,
-                Parent = pill
-            }, { UICorner(7) })
+                Parent = track
+            }, { UICorner(6) })
 
             local interact = New("TextButton", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -1201,19 +1280,19 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
 
             local state = togCfg.CurrentValue
 
-            local function SetToggle(v, silent)
-                state = v
-                if v then
-                    Tween(pill, { BackgroundColor3 = Theme.AccentDim })
-                    Tween(pill:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent })
-                    Tween(knob, { Position = UDim2.new(1, -17, 0.5, -7), BackgroundColor3 = Theme.AccentGlow })
+            local function SetToggle(val, silent)
+                state = val
+                if state then
+                    Tween(track, { BackgroundColor3 = Theme.AccentDim })
+                    Tween(track:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent, Transparency = 0 })
+                    Tween(knob, { Position = UDim2.new(1, -15, 0.5, -6), BackgroundColor3 = Theme.AccentGlow })
                 else
-                    Tween(pill, { BackgroundColor3 = Theme.BG })
-                    Tween(pill:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border })
-                    Tween(knob, { Position = UDim2.new(0, 3, 0.5, -7), BackgroundColor3 = Theme.TextMuted })
+                    Tween(track, { BackgroundColor3 = Theme.BG })
+                    Tween(track:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border, Transparency = 0.3 })
+                    Tween(knob, { Position = UDim2.new(0, 3, 0.5, -6), BackgroundColor3 = Theme.TextMuted })
                 end
                 if not silent then
-                    local ok, err = SafeCall(togCfg.Callback, v)
+                    local ok, err = SafeCall(togCfg.Callback, state)
                     if not ok then
                         ErrorFlash(row, togCfg.Name, Theme.BG3, nameLabel)
                         warn("[DarkLibV6] Toggle '" .. togCfg.Name .. "' error: " .. tostring(err))
@@ -1222,7 +1301,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             end
 
             SetToggle(state, true)
-            if state then SafeCall(togCfg.Callback, state) end
 
             interact.MouseButton1Click:Connect(function()
                 SetToggle(not state)
@@ -1253,6 +1331,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             function TogObj:Destroy()
                 row:Destroy(); AutoCanvas()
             end
+            MakeLockable(TogObj, row)
 
             if flag then DarkLib.Options[flag] = TogObj end
 
@@ -1409,6 +1488,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             function SlObj:Destroy()
                 row:Destroy(); AutoCanvas()
             end
+            MakeLockable(SlObj, row)
 
             if flag then DarkLib.Options[flag] = SlObj end
 
@@ -1543,6 +1623,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             function InObj:Destroy()
                 row:Destroy(); AutoCanvas()
             end
+            MakeLockable(InObj, row)
 
             if flag then DarkLib.Options[flag] = InObj end
 
@@ -1550,6 +1631,9 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         end
 
         -- ─── CreateDropdown ───────────────────────────────────────────────────
+        -- FIX: popup agora fica numa ScreenGui separada com DisplayOrder 9500
+        -- FIX: items com estilo de seleção igual às tabs (barra roxa + bg highlight)
+        -- FIX: lock bloqueia seleção de items
         function TabObj:CreateDropdown(ddCfg, flag)
             ddCfg = Merge({
                 Name = "Dropdown",
@@ -1572,6 +1656,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             end
 
             local row = BaseRow(36)
+            local _ddLocked = false
 
             local nameLabel = New("TextLabel", {
                 Size = UDim2.new(0.55, 0, 1, 0),
@@ -1620,25 +1705,53 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 Parent = row
             })
 
-            -- dropdown popup
-            local popup = New("Frame", {
-                Name = "Popup",
-                Size = UDim2.new(1, 0, 0, 0),
-                Position = UDim2.new(0, 0, 1, 4),
+            -- ── Popup flutuante numa ScreenGui separada ──
+            local ddGui = MakeOverlayGui("DarkLibV6_DDPopup_" .. ddCfg.Name, 9500)
+
+            local popupFrame = New("Frame", {
+                Name = "DDPopup",
+                Size = UDim2.new(0, 0, 0, 0),
                 BackgroundColor3 = Theme.BG2,
                 ClipsDescendants = true,
-                ZIndex = 20,
                 Visible = false,
-                Parent = row
+                ZIndex = 1,
+                Parent = ddGui
             }, {
                 UICorner(7),
-                UIStroke(Theme.Border, 1, 0.3),
+                UIStroke(Theme.Border, 1, 0.25),
+            })
+
+            -- Lista de items dentro do popup (ScrollingFrame para muitos items)
+            local popupScroll = New("ScrollingFrame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                ScrollBarThickness = 2,
+                ScrollBarImageColor3 = Theme.Accent,
+                CanvasSize = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                ZIndex = 2,
+                Parent = popupFrame
+            }, {
                 UIListLayout(2),
                 UIPadding(4, 4, 4, 4),
             })
 
+            local open = false
+
+            local function ClosePopup()
+                open = false
+                Tween(popupFrame, { Size = UDim2.new(popupFrame.Size.X.Scale, popupFrame.Size.X.Offset, 0, 0) }, "fast")
+                Tween(arrow, { Rotation = 0 })
+                task.delay(0.25, function()
+                    if not open then
+                        popupFrame.Visible = false
+                    end
+                end)
+            end
+
             local function RebuildPopup()
-                for _, c in ipairs(popup:GetChildren()) do
+                -- limpa items antigos
+                for _, c in ipairs(popupScroll:GetChildren()) do
                     if c:IsA("Frame") then c:Destroy() end
                 end
 
@@ -1652,38 +1765,66 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
 
                 for _, opt in ipairs(optList) do
                     local isSelected = TableContains(selected, opt)
-                    local optBtn = New("Frame", {
-                        Size = UDim2.new(1, 0, 0, 28),
-                        BackgroundColor3 = isSelected and Theme.AccentDim or Theme.BG3,
-                        BackgroundTransparency = isSelected and 0.3 or 0.6,
-                        ZIndex = 21,
-                        Parent = popup
-                    }, {
-                        UICorner(5),
-                    })
 
-                    New("TextLabel", {
-                        Size = UDim2.new(1, -10, 1, 0),
-                        Position = UDim2.new(0, 8, 0, 0),
+                    -- Item com estilo igual ao NavBtn das tabs
+                    local optRow = New("Frame", {
+                        Name = tostring(opt),
+                        Size = UDim2.new(1, 0, 0, 30),
+                        BackgroundColor3 = isSelected and Theme.TabActive or Color3.fromRGB(0,0,0),
+                        BackgroundTransparency = isSelected and 0.0 or 1,
+                        ZIndex = 3,
+                        Parent = popupScroll
+                    }, { UICorner(5) })
+
+                    -- Barra roxa lateral (igual ao activeBar das tabs)
+                    local selBar = New("Frame", {
+                        Name = "SelBar",
+                        Size = UDim2.new(0, 3, 0.6, 0),
+                        Position = UDim2.new(0, 0, 0.2, 0),
+                        BackgroundColor3 = Theme.Accent,
+                        BackgroundTransparency = isSelected and 0 or 1,
+                        ZIndex = 4,
+                        Parent = optRow
+                    }, { UICorner(2) })
+
+                    local optLabel = New("TextLabel", {
+                        Size = UDim2.new(1, -18, 1, 0),
+                        Position = UDim2.new(0, 12, 0, 0),
                         BackgroundTransparency = 1,
-                        Text = opt,
+                        Text = tostring(opt),
                         TextColor3 = isSelected and Theme.Text or Theme.TextDim,
                         Font = isSelected and Enum.Font.GothamSemibold or Enum.Font.Gotham,
                         TextSize = 12,
                         TextXAlignment = Enum.TextXAlignment.Left,
-                        ZIndex = 22,
-                        Parent = optBtn
+                        ZIndex = 4,
+                        Parent = optRow
                     })
 
                     local optInteract = New("TextButton", {
                         Size = UDim2.new(1, 0, 1, 0),
                         BackgroundTransparency = 1,
                         Text = "",
-                        ZIndex = 23,
-                        Parent = optBtn
+                        ZIndex = 5,
+                        Parent = optRow
                     })
 
+                    optInteract.MouseEnter:Connect(function()
+                        if not TableContains(selected, opt) then
+                            Tween(optRow, { BackgroundTransparency = 0.85 })
+                            Tween(optLabel, { TextColor3 = Theme.TextDim:Lerp(Theme.Text, 0.5) })
+                        end
+                    end)
+                    optInteract.MouseLeave:Connect(function()
+                        if not TableContains(selected, opt) then
+                            Tween(optRow, { BackgroundTransparency = 1 })
+                            Tween(optLabel, { TextColor3 = Theme.TextDim })
+                        end
+                    end)
+
                     optInteract.MouseButton1Click:Connect(function()
+                        -- bloqueia se locked
+                        if _ddLocked then return end
+
                         if ddCfg.MultipleOptions then
                             if TableContains(selected, opt) then
                                 TableRemoveValue(selected, opt)
@@ -1692,32 +1833,77 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                             end
                         else
                             selected = {opt}
-                            -- close
-                            Tween(popup, { Size = UDim2.new(1, 0, 0, 0) }, "fast")
-                            task.delay(0.25, function() popup.Visible = false end)
-                            Tween(arrow, { Rotation = 0 })
+                            ClosePopup()
                         end
+
                         preview.Text = #selected > 0 and table.concat(selected, ", ") or "None"
                         RebuildPopup()
                         SafeCall(ddCfg.Callback, ddCfg.MultipleOptions and selected or selected[1])
                     end)
                 end
-
-                local contentH = math.min(#optList * 30 + 8, 180)
-                Tween(popup, { Size = UDim2.new(1, 0, 0, contentH) })
             end
 
-            local open = false
+            -- Posiciona o popup abaixo do row, na tela
+            local function PositionAndOpenPopup()
+                local rowAbs = row.AbsolutePosition
+                local rowSz  = row.AbsoluteSize
+                local vp     = workspace.CurrentCamera.ViewportSize
+
+                local optCount = #ddCfg.Options
+                if ddCfg.SpecialType == "Player" then
+                    optCount = #Players:GetPlayers()
+                end
+                local contentH = math.min(optCount * 32 + 8, 200)
+                local popW = math.max(rowSz.X, 160)
+
+                -- decide se abre pra baixo ou pra cima
+                local spaceBelow = vp.Y - (rowAbs.Y + rowSz.Y)
+                local openUp = spaceBelow < contentH + 10
+
+                popupFrame.Size = UDim2.fromOffset(popW, 0)
+                if openUp then
+                    popupFrame.Position = UDim2.fromOffset(rowAbs.X, rowAbs.Y - contentH - 4)
+                else
+                    popupFrame.Position = UDim2.fromOffset(rowAbs.X, rowAbs.Y + rowSz.Y + 4)
+                end
+
+                popupFrame.Visible = true
+                RebuildPopup()
+                Tween(popupFrame, { Size = UDim2.fromOffset(popW, contentH) })
+                Tween(arrow, { Rotation = 180 })
+            end
+
             interact.MouseButton1Click:Connect(function()
+                if _ddLocked then return end
                 open = not open
                 if open then
-                    popup.Visible = true
-                    RebuildPopup()
-                    Tween(arrow, { Rotation = 180 })
+                    PositionAndOpenPopup()
                 else
-                    Tween(popup, { Size = UDim2.new(1, 0, 0, 0) }, "fast")
-                    task.delay(0.25, function() popup.Visible = false end)
-                    Tween(arrow, { Rotation = 0 })
+                    ClosePopup()
+                end
+            end)
+
+            -- Fecha o popup ao clicar fora
+            UIS.InputBegan:Connect(function(input, gpe)
+                if open and (
+                    input.UserInputType == Enum.UserInputType.MouseButton1 or
+                    input.UserInputType == Enum.UserInputType.Touch
+                ) then
+                    -- verifica se clicou fora do popup e fora do row
+                    local mpos = UIS:GetMouseLocation()
+                    local ppos = popupFrame.AbsolutePosition
+                    local psz  = popupFrame.AbsoluteSize
+                    local rpos = row.AbsolutePosition
+                    local rsz  = row.AbsoluteSize
+
+                    local inPopup = mpos.X >= ppos.X and mpos.X <= ppos.X + psz.X
+                        and mpos.Y >= ppos.Y and mpos.Y <= ppos.Y + psz.Y
+                    local inRow = mpos.X >= rpos.X and mpos.X <= rpos.X + rsz.X
+                        and mpos.Y >= rpos.Y and mpos.Y <= rpos.Y + rsz.Y
+
+                    if not inPopup and not inRow then
+                        ClosePopup()
+                    end
                 end
             end)
 
@@ -1732,6 +1918,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             AutoCanvas()
 
             local DDObj = { CurrentOption = selected, Settings = ddCfg }
+
             function DDObj:Set(newCfg)
                 newCfg = Merge(ddCfg, newCfg)
                 ddCfg = newCfg
@@ -1744,11 +1931,52 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 preview.Text = #selected > 0 and table.concat(selected, ", ") or "None"
                 DDObj.CurrentOption = selected
             end
+
             function DDObj:Destroy()
-                row:Destroy(); AutoCanvas()
+                if open then ClosePopup() end
+                task.delay(0.3, function() ddGui:Destroy() end)
+                row:Destroy()
+                AutoCanvas()
             end
+
             function DDObj:Refresh()
-                RebuildPopup()
+                if open then RebuildPopup() end
+            end
+
+            -- ToggleLock customizado p/ dropdown: também fecha o popup
+            local _lockOverlay2 = New("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundColor3 = Theme.BG,
+                BackgroundTransparency = 1,
+                ZIndex = 50,
+                Visible = false,
+                Parent = row
+            }, { UICorner(7) })
+
+            New("TextButton", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "",
+                ZIndex = 51,
+                Parent = _lockOverlay2
+            })
+
+            function DDObj:ToggleLock(locked, iconOrText, tooltipText)
+                _ddLocked = locked
+                if locked then
+                    if open then ClosePopup() end
+                    _lockOverlay2.Visible = true
+                    Tween(_lockOverlay2, { BackgroundTransparency = 0.5 })
+                else
+                    Tween(_lockOverlay2, { BackgroundTransparency = 1 })
+                    task.delay(0.35, function()
+                        _lockOverlay2.Visible = false
+                    end)
+                end
+            end
+
+            function DDObj:IsLocked()
+                return _ddLocked
             end
 
             if flag then DarkLib.Options[flag] = DDObj end
@@ -1896,20 +2124,20 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             function BndObj:Destroy()
                 row:Destroy(); AutoCanvas()
             end
+            MakeLockable(BndObj, row)
 
             if flag then DarkLib.Options[flag] = BndObj end
 
             return BndObj
         end
 
-        -- Alias
         TabObj.CreateKeybind = TabObj.CreateBind
 
         -- ─── CreateLabel ──────────────────────────────────────────────────────
         function TabObj:CreateLabel(lbCfg)
             lbCfg = Merge({
                 Text = "Label",
-                Style = 1,  -- 1=default 2=info 3=warn
+                Style = 1,
             }, lbCfg)
 
             local colors = {
@@ -2016,7 +2244,6 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             end
 
             task.defer(Resize)
-
             SpawnFadeIn(row)
 
             local PgObj = { Settings = pgCfg }
@@ -2034,7 +2261,109 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             return PgObj
         end
 
-        -- ─── CreateColorPicker ────────────────────────────────────────────────
+        -- ─── CreateDivider ────────────────────────────────────────────────────
+
+        function TabObj:CreateDivider(divCfg)
+            divCfg = Merge({
+                Text = nil,   
+                Thickness = 1,
+            }, divCfg or {})
+
+            local hasText = divCfg.Text ~= nil and divCfg.Text ~= ""
+            local h = hasText and 20 or 10
+
+            local divRow = New("Frame", {
+                Size = UDim2.new(1, 0, 0, h),
+                BackgroundTransparency = 1,
+                ZIndex = 4,
+                Parent = Page
+            })
+
+            if hasText then
+
+                New("Frame", {
+                    Size = UDim2.new(0, 0, 0, divCfg.Thickness),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    BackgroundColor3 = Theme.Border,
+                    AutomaticSize = Enum.AutomaticSize.None,
+                    ZIndex = 4,
+                    Parent = divRow
+                }, { UICorner(1) })
+
+                local textLbl = New("TextLabel", {
+                    Size = UDim2.new(0, 0, 1, 0),
+                    Position = UDim2.new(0.5, 0, 0, 0),
+                    AnchorPoint = Vector2.new(0.5, 0),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    BackgroundTransparency = 1,
+                    Text = divCfg.Text,
+                    TextColor3 = Theme.TextMuted,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 11,
+                    ZIndex = 5,
+                    Parent = divRow
+                })
+
+
+                local lineLeft = New("Frame", {
+                    Size = UDim2.new(0, 0, 0, divCfg.Thickness),
+                    Position = UDim2.new(0, 0, 0.5, 0),
+                    BackgroundColor3 = Theme.Border,
+                    ZIndex = 4,
+                    Parent = divRow
+                }, { UICorner(1) })
+
+                -- linha direita
+                local lineRight = New("Frame", {
+                    Size = UDim2.new(0, 0, 0, divCfg.Thickness),
+                    Position = UDim2.new(0.5, 0, 0.5, 0),
+                    BackgroundColor3 = Theme.Border,
+                    ZIndex = 4,
+                    Parent = divRow
+                }, { UICorner(1) })
+
+
+                task.defer(function()
+                    local tw = textLbl.TextBounds.X + 12
+                    local half = (divRow.AbsoluteSize.X - tw) / 2
+                    lineLeft.Size  = UDim2.fromOffset(math.max(half, 0), divCfg.Thickness)
+                    lineRight.Size = UDim2.fromOffset(math.max(half, 0), divCfg.Thickness)
+                    lineRight.Position = UDim2.fromOffset(half + tw, h / 2)
+                    textLbl.Position  = UDim2.fromOffset(half, 0)
+                end)
+            else
+
+                New("Frame", {
+                    Size = UDim2.new(1, -24, 0, divCfg.Thickness),
+                    Position = UDim2.new(0, 12, 0.5, 0),
+                    BackgroundColor3 = Theme.Border,
+                    ZIndex = 4,
+                    Parent = divRow
+                }, { UICorner(1) })
+            end
+
+
+            for _, c in ipairs(divRow:GetDescendants()) do
+                if c:IsA("Frame") then
+                    c.BackgroundTransparency = 1
+                    Tween(c, { BackgroundTransparency = 0 }, "slow")
+                elseif c:IsA("TextLabel") then
+                    c.TextTransparency = 1
+                    Tween(c, { TextTransparency = 0 }, "slow")
+                end
+            end
+
+            AutoCanvas()
+
+            local DivObj = {}
+            function DivObj:Destroy()
+                divRow:Destroy(); AutoCanvas()
+            end
+
+            return DivObj
+        end
+
+
         function TabObj:CreateColorPicker(cpCfg, flag)
             cpCfg = Merge({
                 Name = "Color Picker",
@@ -2043,7 +2372,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             }, cpCfg)
 
             local row = BaseRow(36)
-            local open = false
+            local _cpOpen = false
 
             local nameLabel = New("TextLabel", {
                 Size = UDim2.new(1, -60, 1, 0),
@@ -2057,6 +2386,7 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 ZIndex = 5,
                 Parent = row
             })
+
 
             local swatch = New("Frame", {
                 Size = UDim2.fromOffset(24, 24),
@@ -2077,69 +2407,111 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 Parent = row
             })
 
-            -- picker expanded area
-            local picker = New("Frame", {
-                Name = "Picker",
-                Size = UDim2.new(1, 0, 0, 0),
-                Position = UDim2.new(0, 0, 1, 4),
-                BackgroundColor3 = Theme.BG2,
+
+            local cpGui = MakeOverlayGui("DarkLibV6_CPPopup_" .. cpCfg.Name, 9600)
+
+         
+            local cpWin = New("Frame", {
+                Name = "CPWindow",
+                Size = UDim2.fromOffset(230, 0),
+                BackgroundColor3 = Theme.BG,
                 ClipsDescendants = true,
-                ZIndex = 10,
                 Visible = false,
-                Parent = row
+                ZIndex = 1,
+                Parent = cpGui
             }, {
-                UICorner(7),
-                UIStroke(Theme.Border, 1, 0.3),
-                UIPadding(8, 8, 8, 8),
+                UICorner(8),
+                UIStroke(Theme.Border, 1, 0.2),
+                UIPadding(10, 10, 10, 10),
+            })
+
+
+            New("ImageLabel", {
+                Name = "Shadow",
+                Size = UDim2.new(1, 30, 1, 30),
+                Position = UDim2.new(0, -15, 0, -15),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://5028857084",
+                ImageColor3 = Color3.new(0, 0, 0),
+                ImageTransparency = 0.55,
+                ScaleType = Enum.ScaleType.Slice,
+                SliceCenter = Rect.new(24, 24, 276, 276),
+                ZIndex = 0,
+                Parent = cpWin
             })
 
             local h, s, v = cpCfg.Color:ToHSV()
+            local mouse = LocalPlayer:GetMouse()
+            local draggingSV, draggingH = false, false
 
-            -- Color gradient square
+
             local satValBg = New("Frame", {
-                Size = UDim2.new(1, 0, 0, 100),
+                Size = UDim2.new(1, 0, 0, 110),
                 BackgroundColor3 = Color3.fromHSV(h, 1, 1),
-                ZIndex = 11,
-                Parent = picker
+                ZIndex = 2,
+                Parent = cpWin
             }, {
                 UICorner(5),
+
                 New("UIGradient", {
-                    Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.new(1,1,1)), ColorSequenceKeypoint.new(1, Color3.new(1,1,1)) }),
-                    Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) }),
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.new(1,1,1)),
+                        ColorSequenceKeypoint.new(1, Color3.new(1,1,1))
+                    }),
+                    Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 0),
+                        NumberSequenceKeypoint.new(1, 1)
+                    }),
                     Rotation = 90
                 }),
             })
 
+
             local darkOverlay = New("Frame", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundColor3 = Color3.new(0, 0, 0),
-                BackgroundTransparency = 0,
-                ZIndex = 12,
+                ZIndex = 3,
                 Parent = satValBg
             }, {
                 UICorner(5),
                 New("UIGradient", {
-                    Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.new(0,0,0)), ColorSequenceKeypoint.new(1, Color3.new(0,0,0)) }),
-                    Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0) }),
+                    Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Color3.new(0,0,0)),
+                        ColorSequenceKeypoint.new(1, Color3.new(0,0,0))
+                    }),
+                    Transparency = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, 1),
+                        NumberSequenceKeypoint.new(1, 0)
+                    }),
                 })
             })
 
             local svKnob = New("Frame", {
-                Size = UDim2.fromOffset(10, 10),
+                Size = UDim2.fromOffset(12, 12),
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(s, 0, 1 - v, 0),
                 BackgroundColor3 = Color3.new(1, 1, 1),
-                ZIndex = 14,
+                ZIndex = 5,
                 Parent = satValBg
-            }, { UICorner(5), UIStroke(Color3.new(0,0,0), 1.5, 0) })
+            }, {
+                UICorner(6),
+                UIStroke(Color3.new(0,0,0), 1.5, 0)
+            })
 
-            -- Hue slider
+            local svInteract = New("TextButton", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "",
+                ZIndex = 6,
+                Parent = satValBg
+            })
+
+
             local hueSlider = New("Frame", {
                 Size = UDim2.new(1, 0, 0, 14),
-                Position = UDim2.new(0, 0, 0, 110),
-                BackgroundColor3 = Color3.new(1, 0, 0),
-                ZIndex = 11,
-                Parent = picker
+                Position = UDim2.new(0, 0, 0, 120),
+                ZIndex = 2,
+                Parent = cpWin
             }, {
                 UICorner(4),
                 New("UIGradient", {
@@ -2160,65 +2532,162 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 AnchorPoint = Vector2.new(0.5, 0),
                 Position = UDim2.new(h, 0, 0, 0),
                 BackgroundColor3 = Color3.new(1, 1, 1),
-                ZIndex = 13,
+                ZIndex = 3,
                 Parent = hueSlider
-            }, { UICorner(3), UIStroke(Color3.new(0,0,0), 1, 0) })
+            }, {
+                UICorner(3),
+                UIStroke(Color3.new(0,0,0), 1, 0)
+            })
 
-            -- Hex input
-            local hexBg = New("Frame", {
+            local hInteract = New("TextButton", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "",
+                ZIndex = 4,
+                Parent = hueSlider
+            })
+
+
+            local bottomRow = New("Frame", {
                 Size = UDim2.new(1, 0, 0, 24),
-                Position = UDim2.new(0, 0, 0, 132),
-                BackgroundColor3 = Theme.BG,
-                ZIndex = 11,
-                Parent = picker
+                Position = UDim2.new(0, 0, 0, 144),
+                BackgroundTransparency = 1,
+                ZIndex = 2,
+                Parent = cpWin
+            })
+
+            local colorPreview = New("Frame", {
+                Size = UDim2.fromOffset(24, 24),
+                BackgroundColor3 = cpCfg.Color,
+                ZIndex = 3,
+                Parent = bottomRow
+            }, {
+                UICorner(5),
+                UIStroke(Theme.Border, 1, 0.3),
+            })
+
+            local hexBg = New("Frame", {
+                Size = UDim2.new(1, -32, 1, 0),
+                Position = UDim2.new(0, 30, 0, 0),
+                BackgroundColor3 = Theme.BG2,
+                ZIndex = 3,
+                Parent = bottomRow
             }, {
                 UICorner(5),
                 UIStroke(Theme.Border, 1, 0.3),
             })
 
             local hexBox = New("TextBox", {
-                Size = UDim2.new(1, -12, 1, 0),
-                Position = UDim2.new(0, 8, 0, 0),
+                Size = UDim2.new(1, -10, 1, 0),
+                Position = UDim2.new(0, 6, 0, 0),
                 BackgroundTransparency = 1,
-                Text = string.format("#%02X%02X%02X", math.round(cpCfg.Color.R*255), math.round(cpCfg.Color.G*255), math.round(cpCfg.Color.B*255)),
+                Text = string.format("#%02X%02X%02X",
+                    math.round(cpCfg.Color.R*255),
+                    math.round(cpCfg.Color.G*255),
+                    math.round(cpCfg.Color.B*255)
+                ),
                 PlaceholderText = "#RRGGBB",
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.Code,
                 TextSize = 12,
                 ClearTextOnFocus = false,
-                ZIndex = 12,
+                ZIndex = 4,
                 Parent = hexBg
             })
 
-            local function UpdateAll()
-                local col3 = Color3.fromHSV(h, s, v)
-                swatch.BackgroundColor3 = col3
-                satValBg.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-                svKnob.Position = UDim2.new(s, 0, 1 - v, 0)
-                hueKnob.Position = UDim2.new(h, 0, 0, 0)
-                hexBox.Text = string.format("#%02X%02X%02X", math.round(col3.R*255), math.round(col3.G*255), math.round(col3.B*255))
-                cpCfg.Color = col3
-                SafeCall(cpCfg.Callback, col3)
+
+            local rgbRow = New("Frame", {
+                Size = UDim2.new(1, 0, 0, 22),
+                Position = UDim2.new(0, 0, 0, 176),
+                BackgroundTransparency = 1,
+                ZIndex = 2,
+                Parent = cpWin
+            }, { UIListLayout(4, Enum.FillDirection.Horizontal) })
+
+            local function MakeRGBBox(label)
+                local bg = New("Frame", {
+                    Size = UDim2.new(0.33, -3, 1, 0),
+                    BackgroundColor3 = Theme.BG2,
+                    ZIndex = 3,
+                    Parent = rgbRow
+                }, {
+                    UICorner(5),
+                    UIStroke(Theme.Border, 1, 0.3),
+                })
+
+                New("TextLabel", {
+                    Size = UDim2.fromOffset(12, 22),
+                    BackgroundTransparency = 1,
+                    Text = label,
+                    TextColor3 = Theme.TextMuted,
+                    Font = Enum.Font.GothamBold,
+                    TextSize = 10,
+                    ZIndex = 4,
+                    Parent = bg
+                })
+
+                local box = New("TextBox", {
+                    Size = UDim2.new(1, -14, 1, 0),
+                    Position = UDim2.new(0, 14, 0, 0),
+                    BackgroundTransparency = 1,
+                    Text = "0",
+                    TextColor3 = Theme.Text,
+                    Font = Enum.Font.Gotham,
+                    TextSize = 11,
+                    ClearTextOnFocus = false,
+                    ZIndex = 4,
+                    Parent = bg
+                })
+
+                return bg, box
             end
 
-            -- mouse
-            local mouse = LocalPlayer:GetMouse()
-            local draggingSV, draggingH = false, false
+            local _, rBox = MakeRGBBox("R")
+            local _, gBox = MakeRGBBox("G")
+            local _, bBox = MakeRGBBox("B")
 
-            local svInteract = New("TextButton", { Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1, Text = "", ZIndex = 15, Parent = satValBg })
+
+            local CP_H = 10 + 110 + 10 + 14 + 10 + 24 + 8 + 22 + 10 
+
+
+            local function UpdateAll(silent)
+                local col3 = Color3.fromHSV(h, s, v)
+                local r = math.round(col3.R * 255)
+                local g2 = math.round(col3.G * 255)
+                local b2 = math.round(col3.B * 255)
+
+                swatch.BackgroundColor3     = col3
+                colorPreview.BackgroundColor3 = col3
+                satValBg.BackgroundColor3   = Color3.fromHSV(h, 1, 1)
+                svKnob.Position             = UDim2.new(s, 0, 1 - v, 0)
+                hueKnob.Position            = UDim2.new(h, 0, 0, 0)
+                hexBox.Text = string.format("#%02X%02X%02X", r, g2, b2)
+                rBox.Text = tostring(r)
+                gBox.Text = tostring(g2)
+                bBox.Text = tostring(b2)
+                cpCfg.Color = col3
+
+                if not silent then
+                    SafeCall(cpCfg.Callback, col3)
+                end
+            end
+
+            UpdateAll(true)
+
+
             svInteract.MouseButton1Down:Connect(function() draggingSV = true end)
-
-            local hInteract = New("TextButton", { Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1, Text = "", ZIndex = 14, Parent = hueSlider })
             hInteract.MouseButton1Down:Connect(function() draggingH = true end)
 
             UIS.InputEnded:Connect(function(inp)
                 if inp.UserInputType == Enum.UserInputType.MouseButton1 or
                    inp.UserInputType == Enum.UserInputType.Touch then
-                    draggingSV = false; draggingH = false
+                    draggingSV = false
+                    draggingH  = false
                 end
             end)
 
             RS.RenderStepped:Connect(function()
+                if not _cpOpen then return end
                 if draggingSV then
                     local lx = math.clamp(mouse.X - satValBg.AbsolutePosition.X, 0, satValBg.AbsoluteSize.X)
                     local ly = math.clamp(mouse.Y - satValBg.AbsolutePosition.Y, 0, satValBg.AbsoluteSize.Y)
@@ -2233,28 +2702,106 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
                 end
             end)
 
+
+            hexBox.Focused:Connect(function()
+                Tween(hexBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent, Transparency = 0 })
+            end)
             hexBox.FocusLost:Connect(function()
+                Tween(hexBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border, Transparency = 0.3 })
                 local txt = hexBox.Text:gsub("#", "")
-                local r, g, b = txt:match("^(%x%x)(%x%x)(%x%x)$")
-                if r then
-                    local col3 = Color3.fromRGB(tonumber(r, 16), tonumber(g, 16), tonumber(b, 16))
+                local r2, g2, b2 = txt:match("^(%x%x)(%x%x)(%x%x)$")
+                if r2 then
+                    local col3 = Color3.fromRGB(tonumber(r2,16), tonumber(g2,16), tonumber(b2,16))
                     h, s, v = col3:ToHSV()
                     UpdateAll()
+                else
+                    -- restaura hex válido
+                    local c = Color3.fromHSV(h, s, v)
+                    hexBox.Text = string.format("#%02X%02X%02X",
+                        math.round(c.R*255), math.round(c.G*255), math.round(c.B*255))
                 end
             end)
 
-            interact.MouseButton1Click:Connect(function()
-                open = not open
-                if open then
-                    picker.Visible = true
-                    Tween(row, { Size = UDim2.new(1, 0, 0, 36 + 172) }, "slow")
-                    Tween(picker, { Size = UDim2.new(1, 0, 0, 164) }, "slow")
+
+            local function applyRGB()
+                local r2 = math.clamp(tonumber(rBox.Text) or 0, 0, 255)
+                local g2 = math.clamp(tonumber(gBox.Text) or 0, 0, 255)
+                local b2 = math.clamp(tonumber(bBox.Text) or 0, 0, 255)
+                h, s, v = Color3.fromRGB(r2, g2, b2):ToHSV()
+                UpdateAll()
+            end
+
+            rBox.FocusLost:Connect(applyRGB)
+            gBox.FocusLost:Connect(applyRGB)
+            bBox.FocusLost:Connect(applyRGB)
+
+
+            local function PositionAndOpenCP()
+                local rowAbs = row.AbsolutePosition
+                local rowSz  = row.AbsoluteSize
+                local vp     = workspace.CurrentCamera.ViewportSize
+
+                local popW = 230
+                local spaceBelow = vp.Y - (rowAbs.Y + rowSz.Y)
+                local openUp = spaceBelow < CP_H + 10
+
+                cpWin.Size = UDim2.fromOffset(popW, 0)
+                if openUp then
+                    cpWin.Position = UDim2.fromOffset(
+                        math.clamp(rowAbs.X, 4, vp.X - popW - 4),
+                        rowAbs.Y - CP_H - 4
+                    )
                 else
-                    Tween(row, { Size = UDim2.new(1, 0, 0, 36) }, "slow")
-                    Tween(picker, { Size = UDim2.new(1, 0, 0, 0) }, "slow")
-                    task.delay(0.55, function() picker.Visible = false end)
+                    cpWin.Position = UDim2.fromOffset(
+                        math.clamp(rowAbs.X, 4, vp.X - popW - 4),
+                        rowAbs.Y + rowSz.Y + 4
+                    )
                 end
-                task.defer(AutoCanvas)
+
+                cpWin.Visible = true
+                Tween(cpWin, { Size = UDim2.fromOffset(popW, CP_H) })
+            end
+
+            local function CloseCP()
+                _cpOpen = false
+                draggingSV = false
+                draggingH  = false
+                Tween(cpWin, { Size = UDim2.fromOffset(cpWin.AbsoluteSize.X, 0) }, "fast")
+                task.delay(0.25, function()
+                    if not _cpOpen then cpWin.Visible = false end
+                end)
+            end
+
+            interact.MouseButton1Click:Connect(function()
+                _cpOpen = not _cpOpen
+                if _cpOpen then
+                    PositionAndOpenCP()
+                else
+                    CloseCP()
+                end
+            end)
+
+
+            UIS.InputBegan:Connect(function(input, gpe)
+                if _cpOpen and (
+                    input.UserInputType == Enum.UserInputType.MouseButton1 or
+                    input.UserInputType == Enum.UserInputType.Touch
+                ) then
+                    local mpos = UIS:GetMouseLocation()
+                    local wpos = cpWin.AbsolutePosition
+                    local wsz  = cpWin.AbsoluteSize
+                    local rpos = row.AbsolutePosition
+                    local rsz  = row.AbsoluteSize
+
+                    local inWin = mpos.X >= wpos.X and mpos.X <= wpos.X + wsz.X
+                        and mpos.Y >= wpos.Y and mpos.Y <= wpos.Y + wsz.Y
+                    local inRow = mpos.X >= rpos.X and mpos.X <= rpos.X + rsz.X
+                        and mpos.Y >= rpos.Y and mpos.Y <= rpos.Y + rsz.Y
+
+                    if not inWin and not inRow then
+                        CloseCP()
+                    end
+                end
             end)
 
             interact.MouseEnter:Connect(function()
@@ -2268,17 +2815,24 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
             AutoCanvas()
 
             local CPObj = { Color = cpCfg.Color, Settings = cpCfg }
+
             function CPObj:Set(newCfg)
                 newCfg = Merge(cpCfg, newCfg)
                 cpCfg = newCfg
                 nameLabel.Text = cpCfg.Name
                 h, s, v = cpCfg.Color:ToHSV()
-                UpdateAll()
+                UpdateAll(true)
                 CPObj.Color = cpCfg.Color
             end
+
             function CPObj:Destroy()
-                row:Destroy(); AutoCanvas()
+                CloseCP()
+                task.delay(0.3, function() cpGui:Destroy() end)
+                row:Destroy()
+                AutoCanvas()
             end
+
+            MakeLockable(CPObj, row)
 
             if flag then DarkLib.Options[flag] = CPObj end
 
@@ -2288,10 +2842,9 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         return TabObj
     end
 
-    -- ── Key System ──
+
     if cfg.KeySystem then
         local KeySettings = cfg.KeySettings
-        local keyVerified = false
 
         local keyScreen = New("Frame", {
             Name = "KeyScreen",
@@ -2403,92 +2956,94 @@ local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, 
         end)
     end
 
-function WindowObj:CreateCloseButton(cfg)
-    cfg = cfg or {}
-    local iconId    = cfg.IconId
-    local validIcon = type(iconId) == "string" and iconId ~= ""
-        and tonumber(iconId:match("%d+")) ~= nil
+    function WindowObj:CreateCloseButton(cfg2)
+        cfg2 = cfg2 or {}
+        local iconId    = cfg2.IconId
+        local validIcon = type(iconId) == "string" and iconId ~= ""
+            and tonumber(iconId:match("%d+")) ~= nil
 
-    for _, c in ipairs(_closeBtnFrame:GetChildren()) do
-        if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
+        for _, c in ipairs(_closeBtnFrame:GetChildren()) do
+            if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
+        end
+
+        local closeColor = Color3.fromRGB(190, 60, 90)
+
+        if validIcon then
+            New("ImageLabel", {
+                Size = UDim2.new(1, -4, 1, -4),
+                Position = UDim2.new(0, 2, 0, 2),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://" .. iconId:match("%d+"),
+                ImageColor3 = closeColor,
+                ScaleType = Enum.ScaleType.Fit,
+                ZIndex = 4,
+                Parent = _closeBtnFrame
+            })
+        else
+            New("TextLabel", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "X",
+                TextColor3 = closeColor,
+                TextTransparency = 0.1,
+                Font = Enum.Font.GothamBold,
+                TextSize = 9,
+                ZIndex = 4,
+                Parent = _closeBtnFrame
+            })
+        end
     end
 
-    local closeColor = Color3.fromRGB(190, 60, 90)
+    function WindowObj:CreateMinimizeButton(cfg2)
+        cfg2 = cfg2 or {}
 
-    if validIcon then
-        New("ImageLabel", {
-            Size                 = UDim2.new(1, -4, 1, -4),
-            Position             = UDim2.new(0, 2, 0, 2),
-            BackgroundTransparency = 1,
-            Image                = "rbxassetid://" .. iconId:match("%d+"),
-            ImageColor3          = closeColor,
-            ScaleType            = Enum.ScaleType.Fit,
-            ZIndex               = 4,
-            Parent               = _closeBtnFrame
-        })
-    else
-        New("TextLabel", {
-            Size                 = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 1,
-            Text                 = "✕",
-            TextColor3           = closeColor,
-            TextTransparency     = 0.1,
-            Font                 = Enum.Font.GothamBold,
-            TextSize             = 9,
-            ZIndex               = 4,
-            Parent               = _closeBtnFrame
-        })
+        local function validId(id)
+            return type(id) == "string" and id ~= "" and tonumber(id:match("%d+")) ~= nil
+        end
+
+        local onId  = validId(cfg2.OnIconId)  and cfg2.OnIconId:match("%d+")  or nil
+        local offId = validId(cfg2.OffIconId) and cfg2.OffIconId:match("%d+") or nil
+
+        WindowObj._minCfg = {
+            _onIconId    = onId,
+            _offIconId   = offId,
+            _onFallback  = "+",
+            _offFallback = "-",
+        }
+
+        for _, c in ipairs(_minBtnFrame:GetChildren()) do
+            if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
+        end
+
+        local minColor = Color3.fromRGB(120, 90, 220)
+
+        if onId or offId then
+            local startId = _minimized and (onId or offId) or (offId or onId)
+            New("ImageLabel", {
+                Size = UDim2.new(1, -4, 1, -4),
+                Position = UDim2.new(0, 2, 0, 2),
+                BackgroundTransparency = 1,
+                Image = "rbxassetid://" .. startId,
+                ImageColor3 = minColor,
+                ScaleType = Enum.ScaleType.Fit,
+                ZIndex = 4,
+                Parent = _minBtnFrame
+            })
+        else
+            New("TextLabel", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text = _minimized and "+" or "─",
+                TextColor3 = minColor,
+                TextTransparency = 0.1,
+                Font = Enum.Font.GothamBold,
+                TextSize = 9,
+                ZIndex = 4,
+                Parent = _minBtnFrame
+            })
+        end
     end
-end
-function WindowObj:CreateMinimizeButton(cfg)
-    cfg = cfg or {}
 
-    local function validId(id)
-        return type(id) == "string" and id ~= "" and tonumber(id:match("%d+")) ~= nil
-    end
-
-    local onId  = validId(cfg.OnIconId)  and cfg.OnIconId:match("%d+")  or nil
-    local offId = validId(cfg.OffIconId) and cfg.OffIconId:match("%d+") or nil
-
-    WindowObj._minCfg = {
-        _onIconId    = onId,
-        _offIconId   = offId,
-        _onFallback  = "+",
-        _offFallback = "─",
-    }
-
-    for _, c in ipairs(_minBtnFrame:GetChildren()) do
-        if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
-    end
-
-    local minColor = Color3.fromRGB(120, 90, 220)
-
-    if onId or offId then
-        local startId = _minimized and (onId or offId) or (offId or onId)
-        New("ImageLabel", {
-            Size                 = UDim2.new(1, -4, 1, -4),
-            Position             = UDim2.new(0, 2, 0, 2),
-            BackgroundTransparency = 1,
-            Image                = "rbxassetid://" .. startId,
-            ImageColor3          = minColor,
-            ScaleType            = Enum.ScaleType.Fit,
-            ZIndex               = 4,
-            Parent               = _minBtnFrame
-        })
-    else
-        New("TextLabel", {
-            Size                 = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 1,
-            Text                 = _minimized and "+" or "─",
-            TextColor3           = minColor,
-            TextTransparency     = 0.1,
-            Font                 = Enum.Font.GothamBold,
-            TextSize             = 9,
-            ZIndex               = 4,
-            Parent               = _minBtnFrame
-        })
-    end
-end
     return WindowObj
 end
 
