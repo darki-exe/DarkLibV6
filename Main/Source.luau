@@ -1631,9 +1631,7 @@ function DarkLib:CreateWindow(cfg)
         end
 
         -- ─── CreateDropdown ───────────────────────────────────────────────────
-        -- FIX: popup agora fica numa ScreenGui separada com DisplayOrder 9500
-        -- FIX: items com estilo de seleção igual às tabs (barra roxa + bg highlight)
-        -- FIX: lock bloqueia seleção de items
+
         function TabObj:CreateDropdown(ddCfg, flag)
             ddCfg = Merge({
                 Name = "Dropdown",
@@ -1685,17 +1683,16 @@ function DarkLib:CreateWindow(cfg)
                 Parent = row
             })
 
-            local arrow = New("TextLabel", {
-                Size = UDim2.fromOffset(18, 36),
-                Position = UDim2.new(1, -22, 0, 0),
-                BackgroundTransparency = 1,
-                Text = "▾",
-                TextColor3 = Theme.TextMuted,
-                Font = Enum.Font.GothamBold,
-                TextSize = 14,
-                ZIndex = 5,
+            local arrow = New("ImageLabel", {
+            Size = UDim2.fromOffset(18, 36),
+           Position = UDim2.new(1, -22, 0, 0),
+            BackgroundTransparency = 1,
+            Image = "rbxassetid://10709790948",
+           ImageColor3 = Theme.TextMuted,
+            ScaleType = Enum.ScaleType.Fit,
+               ZIndex = 5,
                 Parent = row
-            })
+           })
 
             local interact = New("TextButton", {
                 Size = UDim2.new(1, 0, 1, 0),
