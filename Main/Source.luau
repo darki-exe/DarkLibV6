@@ -2883,7 +2883,7 @@ end
         local _keyLocked     = false
         local _keySubmitting = false
 
-        -- ── fade-in de entrada ──
+
         local keyScreen = New("Frame", {
             Name = "KeyScreen",
             Size = UDim2.new(1, 0, 1, 0),
@@ -2893,7 +2893,7 @@ end
             Parent = Window
         }, { UICorner(10) })
 
-        -- gradient sutil no background
+
         New("UIGradient", {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 18, 30)),
@@ -2903,7 +2903,7 @@ end
             Parent = keyScreen
         })
 
-        -- accent bar no topo
+
         local keyAccentBar = New("Frame", {
             Size = UDim2.new(0, 60, 0, 3),
             Position = UDim2.new(0.5, -30, 0.5, -108),
@@ -2914,7 +2914,7 @@ end
             Parent = keyScreen
         }, { UICorner(4) })
 
-        -- ícone/logo (opcional via KeySettings.Icon)
+
         if KeySettings.Icon and KeySettings.Icon ~= "" then
             New("ImageLabel", {
                 Size = UDim2.new(0, 38, 0, 38),
@@ -2929,7 +2929,7 @@ end
             })
         end
 
-        -- título
+
         local keyTitle = New("TextLabel", {
             Size = UDim2.new(0, 280, 0, 28),
             Position = UDim2.new(0.5, -140, 0.5, -82),
@@ -2943,7 +2943,7 @@ end
             Parent = keyScreen
         })
 
-        -- subtitle
+
         local keySubtitle = New("TextLabel", {
             Size = UDim2.new(0, 280, 0, 16),
             Position = UDim2.new(0.5, -140, 0.5, -56),
@@ -2957,7 +2957,7 @@ end
             Parent = keyScreen
         })
 
-        -- descrição (nova)
+  
         local keyDesc = New("TextLabel", {
             Size = UDim2.new(0, 280, 0, 14),
             Position = UDim2.new(0.5, -140, 0.5, -36),
@@ -2971,7 +2971,7 @@ end
             Parent = keyScreen
         })
 
-        -- separador
+
         local keySep = New("Frame", {
             Size = UDim2.new(0, 240, 0, 1),
             Position = UDim2.new(0.5, -120, 0.5, -16),
@@ -2982,7 +2982,7 @@ end
             Parent = keyScreen
         })
 
-        -- input bg
+
         local keyInputBg = New("Frame", {
             Size = UDim2.new(0, 248, 0, 36),
             Position = UDim2.new(0.5, -124, 0.5, 4),
@@ -3011,21 +3011,20 @@ end
             Parent = keyInputBg
         })
 
-        -- botão paste (clipboard)
-        local keyPasteBtn = New("TextButton", {
-            Size = UDim2.new(0, 32, 0, 24),
-            Position = UDim2.new(1, -36, 0.5, -12),
-            BackgroundColor3 = Theme.BG3,
-            Text = "⎘",
-            TextColor3 = Theme.TextDim,
-            Font = Enum.Font.GothamBold,
-            TextSize = 13,
-            TextTransparency = 1,
-            ZIndex = 203,
-            Parent = keyInputBg
-        }, { UICorner(5) })
 
-        -- linha de botões: Submit + Get Key
+        local keyPasteBtn = New("ImageButton", {
+    Size = UDim2.new(0, 32, 0, 24),
+    Position = UDim2.new(1, -36, 0.5, -12),
+    BackgroundColor3 = Theme.BG3,
+    Image = "rbxassetid://10709799288",
+    ImageColor3 = Theme.TextDim,
+    ImageTransparency = 1,
+    ScaleType = Enum.ScaleType.Fit,
+    ZIndex = 203,
+    Parent = keyInputBg
+}, { UICorner(5) })
+
+
         local keyBtnRow = New("Frame", {
             Size = UDim2.new(0, 248, 0, 32),
             Position = UDim2.new(0.5, -124, 0.5, 48),
@@ -3046,7 +3045,7 @@ end
             Parent = keyBtnRow
         }, { UICorner(7) })
 
-        -- botão Get Key (só aparece se KeySettings.KeyLink existir)
+
         local keyGetBtn
         if KeySettings.KeyLink and KeySettings.KeyLink ~= "" then
             keyGetBtn = New("TextButton", {
@@ -3078,7 +3077,7 @@ end
             Parent = keyScreen
         })
 
-        -- ── fade-in de entrada ──
+
         local function _keyFadeIn(obj, extraDelay)
             task.delay(extraDelay or 0, function()
                 if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
@@ -3115,7 +3114,7 @@ end
             task.delay(0.42, function() Tween(keyStatus, { TextTransparency = 0 }, "slow") end)
         end)
 
-        -- ── fade-out e destroy ──
+
         local function _keyFadeOut(cb)
             Tween(keyScreen, { BackgroundTransparency = 1 }, "med")
             for _, c in ipairs(keyScreen:GetDescendants()) do
@@ -3135,7 +3134,7 @@ end
             end)
         end
 
-        -- ── shake animation no invalid ──
+
         local function _shakeInput()
             local orig = keyInputBg.Position
             local ox = orig.X.Offset
@@ -3150,7 +3149,7 @@ end
             end
         end
 
-        -- ── lógica de submit ──
+
         local function _doSubmit()
             if _keySubmitting or _keyLocked then return end
             local entered = keyBox.Text
@@ -3165,7 +3164,7 @@ end
                 if entered == k then valid = true; break end
             end
 
-            task.delay(0.3, function() -- leve delay pra dar sensação de verificação
+            task.delay(0.3, function() 
                 if valid then
                     keyStatus.TextColor3 = Theme.Green
                     keyStatus.Text = "Key accepted!"
@@ -3226,12 +3225,11 @@ end
 
         keySubmit.MouseButton1Click:Connect(_doSubmit)
 
-        -- Enter pra confirmar
+
         keyBox.FocusLost:Connect(function(enter)
             if enter then _doSubmit() end
         end)
 
-        -- Paste do clipboard
         keyPasteBtn.MouseButton1Click:Connect(function()
             local ok, clip = pcall(getclipboard)
             if ok and clip and clip ~= "" then
@@ -3241,7 +3239,7 @@ end
             end
         end)
 
-        -- Get Key link
+
         if keyGetBtn and KeySettings.KeyLink then
             keyGetBtn.MouseButton1Click:Connect(function()
                 local ok, _ = pcall(setclipboard, KeySettings.KeyLink)
