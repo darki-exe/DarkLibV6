@@ -440,28 +440,68 @@ function DarkLib:CreateWindow(cfg)
         Parent = TopBar
     })
 
-    -- Minimize / Close controls
-    local function MakeCtrlBtn(color, xpos)
+    -- ── Control button factory ──────────────────────────────────────────────
+    local _ctrlOffset = -16
+
+    local function MakeCtrlBtn(bgColor, iconId, fallbackText)
+        local xpos = _ctrlOffset
+        _ctrlOffset = _ctrlOffset - 18
+
         local btn = New("Frame", {
-            Size = UDim2.fromOffset(14, 14),
+            Size     = UDim2.fromOffset(14, 14),
             Position = UDim2.new(1, xpos, 0.5, -7),
-            BackgroundColor3 = color,
-            ZIndex = 3,
-            Parent = TopBar
+            BackgroundColor3 = bgColor,
+            ZIndex   = 3,
+            Parent   = TopBar
         }, { UICorner(7) })
 
-        local ic = New("TextButton", {
-            Size = UDim2.new(1, 0, 1, 0),
+        local validIcon = type(iconId) == "string" and iconId ~= "" and tonumber(iconId:match("%d+")) ~= nil
+
+        if validIcon then
+            New("ImageLabel", {
+                Size                 = UDim2.new(1, -2, 1, -2),
+                Position             = UDim2.new(0, 1, 0, 1),
+                BackgroundTransparency = 1,
+                Image                = "rbxassetid://" .. iconId:match("%d+"),
+                ImageColor3          = Color3.new(1, 1, 1),
+                ScaleType            = Enum.ScaleType.Fit,
+                ZIndex               = 4,
+                Parent               = btn
+            })
+        else
+            New("TextLabel", {
+                Size                 = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text                 = fallbackText,
+                TextColor3           = Color3.new(1, 1, 1),
+                TextTransparency     = 0.2,
+                Font                 = Enum.Font.GothamBold,
+                TextSize             = 10,
+                ZIndex               = 4,
+                Parent               = btn
+            })
+        end
+
+        local interact = New("TextButton", {
+            Size                 = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
-            Text = "",
-            ZIndex = 3,
-            Parent = btn
+            Text                 = "",
+            ZIndex               = 5,
+            Parent               = btn
         })
-        return btn, ic
+
+        interact.MouseEnter:Connect(function()
+            Tween(btn, { BackgroundColor3 = bgColor:Lerp(Color3.new(1,1,1), 0.25) }, "fast")
+        end)
+        interact.MouseLeave:Connect(function()
+            Tween(btn, { BackgroundColor3 = bgColor }, "fast")
+        end)
+
+        return btn, interact
     end
 
-    local _, closeBtn = MakeCtrlBtn(Color3.fromRGB(200, 70, 70), -16)
-    local _, minBtn   = MakeCtrlBtn(Color3.fromRGB(60, 140, 220), -34)
+    local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(200, 70, 70),  nil, "✕")
+    local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(60, 140, 220), nil, "─")
 
     -- ── Navigation sidebar ──
     local NavWidth = 140
@@ -627,6 +667,20 @@ function DarkLib:CreateWindow(cfg)
 
     local _minimized = false
     local _lastSize
+
+    local function _setMinIcon(isMinimized)
+        local mcfg = WindowObj._minCfg
+        if not mcfg then return end
+        local iconChild = _minBtnFrame:FindFirstChildWhichIsA("ImageLabel")
+        local textChild = _minBtnFrame:FindFirstChildWhichIsA("TextLabel")
+        if iconChild then
+            local id = isMinimized and mcfg._onIconId or mcfg._offIconId
+            if id then iconChild.Image = "rbxassetid://" .. id end
+        elseif textChild then
+            textChild.Text = isMinimized and (mcfg._onFallback or "+") or (mcfg._offFallback or "─")
+        end
+    end
+
     minBtn.MouseButton1Click:Connect(function()
         if _minimized then
             _minimized = false
@@ -640,6 +694,7 @@ function DarkLib:CreateWindow(cfg)
             ContentArea.Visible = false
             NavPanel.Visible = false
         end
+        _setMinIcon(_minimized)
     end)
 
     -- ── Hide/show bind ──
@@ -2338,6 +2393,103 @@ function DarkLib:CreateWindow(cfg)
                 end)
             end
         end)
+    end
+
+    -- ── CreateCloseButton ────────────────────────────────────────────────────
+    -- Reconfigures the close button appearance.
+    -- cfg.IconId : string  rbxassetid number (e.g. "7743870040")
+    --                      nil / invalid  →  falls back to "✕" text
+    function WindowObj:CreateCloseButton(cfg)
+        cfg = cfg or {}
+        local iconId = cfg.IconId
+        local validIcon = type(iconId) == "string" and iconId ~= ""
+            and tonumber(iconId:match("%d+")) ~= nil
+
+        -- clear existing icon/text children
+        for _, c in ipairs(_closeBtnFrame:GetChildren()) do
+            if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
+        end
+
+        if validIcon then
+            New("ImageLabel", {
+                Size                 = UDim2.new(1, -2, 1, -2),
+                Position             = UDim2.new(0, 1, 0, 1),
+                BackgroundTransparency = 1,
+                Image                = "rbxassetid://" .. iconId:match("%d+"),
+                ImageColor3          = Color3.new(1, 1, 1),
+                ScaleType            = Enum.ScaleType.Fit,
+                ZIndex               = 4,
+                Parent               = _closeBtnFrame
+            })
+        else
+            New("TextLabel", {
+                Size                 = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text                 = "✕",
+                TextColor3           = Color3.new(1, 1, 1),
+                TextTransparency     = 0.2,
+                Font                 = Enum.Font.GothamBold,
+                TextSize             = 10,
+                ZIndex               = 4,
+                Parent               = _closeBtnFrame
+            })
+        end
+    end
+
+    -- ── CreateMinimizeButton ─────────────────────────────────────────────────
+    -- Reconfigures the minimize button appearance and its two icon states.
+    -- cfg.OnIconId  : string  icon shown when window IS minimized   (restore state)
+    -- cfg.OffIconId : string  icon shown when window is NOT minimized (normal state)
+    -- Both nil / invalid  →  uses "─" / "+" text fallbacks
+    function WindowObj:CreateMinimizeButton(cfg)
+        cfg = cfg or {}
+
+        local function validId(id)
+            return type(id) == "string" and id ~= "" and tonumber(id:match("%d+")) ~= nil
+        end
+
+        local onId  = validId(cfg.OnIconId)  and cfg.OnIconId:match("%d+")  or nil
+        local offId = validId(cfg.OffIconId) and cfg.OffIconId:match("%d+") or nil
+
+        -- store for state-switch callback
+        WindowObj._minCfg = {
+            _onIconId   = onId,
+            _offIconId  = offId,
+            _onFallback  = "+",
+            _offFallback = "─",
+        }
+
+        -- clear existing icon/text children
+        for _, c in ipairs(_minBtnFrame:GetChildren()) do
+            if c:IsA("ImageLabel") or c:IsA("TextLabel") then c:Destroy() end
+        end
+
+        if onId or offId then
+            -- use image; start with the current state icon
+            local startId = _minimized and (onId or offId) or (offId or onId)
+            New("ImageLabel", {
+                Size                 = UDim2.new(1, -2, 1, -2),
+                Position             = UDim2.new(0, 1, 0, 1),
+                BackgroundTransparency = 1,
+                Image                = "rbxassetid://" .. startId,
+                ImageColor3          = Color3.new(1, 1, 1),
+                ScaleType            = Enum.ScaleType.Fit,
+                ZIndex               = 4,
+                Parent               = _minBtnFrame
+            })
+        else
+            New("TextLabel", {
+                Size                 = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text                 = _minimized and "+" or "─",
+                TextColor3           = Color3.new(1, 1, 1),
+                TextTransparency     = 0.2,
+                Font                 = Enum.Font.GothamBold,
+                TextSize             = 10,
+                ZIndex               = 4,
+                Parent               = _minBtnFrame
+            })
+        end
     end
 
     return WindowObj
