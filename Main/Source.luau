@@ -223,7 +223,7 @@ local function SetupNotifHolder()
     NotifHolder = New("Frame", {
         Name = "Holder",
         Size = UDim2.new(0, 280, 1, 0),
-        Position = UDim2.new(1, -294, 0, 0),
+        Position = UDim2.new(1, -294, -0.01, 0),
         BackgroundTransparency = 1,
         Parent = screen
     }, { UIListLayout(6, Enum.FillDirection.Vertical, Enum.HorizontalAlignment.Right, Enum.VerticalAlignment.Bottom) })
