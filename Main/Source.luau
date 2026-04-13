@@ -1033,98 +1033,121 @@ function DarkLib:CreateWindow(cfg)
         end
 
         -- ─── MakeLockable ────────────────────────────────────────────────────
-        local function MakeLockable(compObj, row)
-            local _locked = false
-            local _lockIcon = nil
+    local function MakeLockable(compObj, row)
+    local _locked = false
+    local _lockIcon = nil
+    local _LOCKED_ID   = "10723434711"
+    local _UNLOCKED_ID = "10747366027"
 
-            local _lockOverlay = New("Frame", {
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundColor3 = Theme.BG,
-                BackgroundTransparency = 1,
-                ZIndex = 50,
-                Visible = false,
-                Parent = row
-            }, { UICorner(7) })
+    local _lockOverlay = New("Frame", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = Theme.BG,
+        BackgroundTransparency = 1,
+        ZIndex = 200,
+        Visible = false,
+        Parent = row
+    }, { UICorner(7) })
 
-            local _lockTooltip = New("TextLabel", {
-                Size = UDim2.new(1, -40, 1, 0),
-                Position = UDim2.new(0, 12, 0, 0),
+    New("TextButton", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        ZIndex = 201,
+        Parent = _lockOverlay
+    })
+
+    local _lockTooltip = New("TextLabel", {
+        Size = UDim2.new(0, 200, 1, 0),
+        Position = UDim2.new(0.5, -110, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        TextColor3 = Theme.TextMuted,
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        ZIndex = 202,
+        Visible = false,
+        Parent = _lockOverlay
+    })
+
+    function compObj:ToggleLock(locked, _, tooltipText)
+        _locked = locked
+
+        if locked then
+            if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
+
+            _lockIcon = New("ImageLabel", {
+                Size = UDim2.fromOffset(20, 20),
+                Position = UDim2.new(0.5, -86, 0.5, -10),
+                AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundTransparency = 1,
-                Text = "",
-                TextColor3 = Theme.TextMuted,
-                Font = Enum.Font.Gotham,
-                TextSize = 11,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                TextTruncate = Enum.TextTruncate.AtEnd,
-                ZIndex = 52,
-                Visible = false,
+                Image = "rbxassetid://" .. _LOCKED_ID,
+                ImageColor3 = Theme.AccentGlow,
+                ScaleType = Enum.ScaleType.Fit,
+                ZIndex = 202,
                 Parent = _lockOverlay
             })
 
-            New("TextButton", {
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text = "",
-                ZIndex = 51,
-                Parent = _lockOverlay
-            })
-
-            function compObj:ToggleLock(locked, iconOrText, tooltipText)
-                _locked = locked
-                if locked then
-                    if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
-
-                    if iconOrText ~= nil and tostring(iconOrText) ~= "" then
-                        local str = tostring(iconOrText)
-                        if str:match("^%d+$") then
-                            _lockIcon = New("ImageLabel", {
-                                Size = UDim2.fromOffset(18, 18),
-                                Position = UDim2.new(1, -26, 0.5, -9),
-                                BackgroundTransparency = 1,
-                                Image = "rbxassetid://" .. str,
-                                ImageColor3 = Theme.TextMuted,
-                                ScaleType = Enum.ScaleType.Fit,
-                                ZIndex = 53,
-                                Parent = _lockOverlay
-                            })
-                        else
-                            _lockIcon = New("TextLabel", {
-                                Size = UDim2.fromOffset(22, 22),
-                                Position = UDim2.new(1, -28, 0.5, -11),
-                                BackgroundTransparency = 1,
-                                Text = str,
-                                TextColor3 = Theme.TextMuted,
-                                Font = Enum.Font.GothamBold,
-                                TextSize = 14,
-                                ZIndex = 53,
-                                Parent = _lockOverlay
-                            })
-                        end
-                    end
-
-                    if tooltipText ~= nil and tostring(tooltipText) ~= "" then
-                        _lockTooltip.Text = tostring(tooltipText)
-                        _lockTooltip.Visible = true
-                    else
-                        _lockTooltip.Visible = false
-                    end
-
-                    _lockOverlay.Visible = true
-                    Tween(_lockOverlay, { BackgroundTransparency = 0.5 })
-                else
-                    Tween(_lockOverlay, { BackgroundTransparency = 1 })
-                    task.delay(0.35, function()
-                        _lockOverlay.Visible = false
-                        if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
-                        _lockTooltip.Visible = false
-                    end)
-                end
+            if tooltipText ~= nil and tostring(tooltipText) ~= "" then
+                _lockTooltip.Text = tostring(tooltipText)
+                _lockTooltip.Visible = true
+            else
+                _lockTooltip.Visible = false
             end
 
-            function compObj:IsLocked()
-                return _locked
+            _lockOverlay.Visible = true
+            Tween(_lockOverlay, { BackgroundTransparency = 0.25 })
+
+        else
+            _locked = false
+            _lockTooltip.Visible = false
+
+            if _lockIcon then
+                local t1 = TS:Create(_lockIcon, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(0.5, -12, 0.5, -12),
+                    Size = UDim2.fromOffset(24, 24),
+                })
+                t1:Play()
+                t1.Completed:Wait()
+
+                local t2 = TS:Create(_lockIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
+                    ImageTransparency = 1
+                })
+                t2:Play()
+                t2.Completed:Wait()
+
+                _lockIcon.Image = "rbxassetid://" .. _UNLOCKED_ID
+
+                local t3 = TS:Create(_lockIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
+                    ImageTransparency = 0
+                })
+                t3:Play()
+                t3.Completed:Wait()
+
+                TS:Create(_lockIcon, TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+                    Position = UDim2.new(0.5, -12, 0.5, 6),
+                    ImageTransparency = 1,
+                }):Play()
+                Tween(_lockOverlay, { BackgroundTransparency = 1 }, "fast")
+
+                task.delay(0.18, function()
+                    _lockOverlay.Visible = false
+                    if _lockIcon then _lockIcon:Destroy(); _lockIcon = nil end
+                end)
+            else
+                Tween(_lockOverlay, { BackgroundTransparency = 1 }, "fast")
+                task.delay(0.25, function()
+                    _lockOverlay.Visible = false
+                end)
             end
         end
+    end
+
+    function compObj:IsLocked()
+        return _locked
+    end
+end
 
         -- ─── CreateButton ────────────────────────────────────────────────────
         function TabObj:CreateButton(btnCfg, flag)
@@ -1702,7 +1725,7 @@ function DarkLib:CreateWindow(cfg)
                 Parent = row
             })
 
-            -- ── Popup flutuante numa ScreenGui separada ──
+
             local ddGui = MakeOverlayGui("DarkLibV6_DDPopup_" .. ddCfg.Name, 9500)
 
             local popupFrame = New("Frame", {
@@ -1718,7 +1741,7 @@ function DarkLib:CreateWindow(cfg)
                 UIStroke(Theme.Border, 1, 0.25),
             })
 
-            -- Lista de items dentro do popup (ScrollingFrame para muitos items)
+
             local popupScroll = New("ScrollingFrame", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
@@ -1747,7 +1770,7 @@ function DarkLib:CreateWindow(cfg)
             end
 
             local function RebuildPopup()
-                -- limpa items antigos
+
                 for _, c in ipairs(popupScroll:GetChildren()) do
                     if c:IsA("Frame") then c:Destroy() end
                 end
@@ -1763,7 +1786,7 @@ function DarkLib:CreateWindow(cfg)
                 for _, opt in ipairs(optList) do
                     local isSelected = TableContains(selected, opt)
 
-                    -- Item com estilo igual ao NavBtn das tabs
+
                     local optRow = New("Frame", {
                         Name = tostring(opt),
                         Size = UDim2.new(1, 0, 0, 30),
@@ -1773,7 +1796,7 @@ function DarkLib:CreateWindow(cfg)
                         Parent = popupScroll
                     }, { UICorner(5) })
 
-                    -- Barra roxa lateral (igual ao activeBar das tabs)
+
                     local selBar = New("Frame", {
                         Name = "SelBar",
                         Size = UDim2.new(0, 3, 0.6, 0),
@@ -1819,7 +1842,7 @@ function DarkLib:CreateWindow(cfg)
                     end)
 
                     optInteract.MouseButton1Click:Connect(function()
-                        -- bloqueia se locked
+
                         if _ddLocked then return end
 
                         if ddCfg.MultipleOptions then
@@ -1840,7 +1863,7 @@ function DarkLib:CreateWindow(cfg)
                 end
             end
 
-            -- Posiciona o popup abaixo do row, na tela
+
             local function PositionAndOpenPopup()
                 local rowAbs = row.AbsolutePosition
                 local rowSz  = row.AbsoluteSize
@@ -1880,14 +1903,15 @@ function DarkLib:CreateWindow(cfg)
                 end
             end)
 
-            -- Fecha o popup ao clicar fora
+
             UIS.InputBegan:Connect(function(input, gpe)
                 if open and (
                     input.UserInputType == Enum.UserInputType.MouseButton1 or
                     input.UserInputType == Enum.UserInputType.Touch
                 ) then
-                    -- verifica se clicou fora do popup e fora do row
-                    local mpos = UIS:GetMouseLocation()
+
+                    local inset = game:GetService("GuiService"):GetGuiInset()
+                    local mpos = UIS:GetMouseLocation() - inset
                     local ppos = popupFrame.AbsolutePosition
                     local psz  = popupFrame.AbsoluteSize
                     local rpos = row.AbsolutePosition
@@ -1940,7 +1964,7 @@ function DarkLib:CreateWindow(cfg)
                 if open then RebuildPopup() end
             end
 
-            -- ToggleLock customizado p/ dropdown: também fecha o popup
+
             local _lockOverlay2 = New("Frame", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundColor3 = Theme.BG,
@@ -2781,8 +2805,9 @@ end
                     input.UserInputType == Enum.UserInputType.MouseButton1 or
                     input.UserInputType == Enum.UserInputType.Touch
                 ) then
-                    local mpos = UIS:GetMouseLocation()
-                    local wpos = cpWin.AbsolutePosition
+                    local inset = game:GetService("GuiService"):GetGuiInset()
+                    local mpos = UIS:GetMouseLocation() - inset
+                    local ppos = popupFrame.AbsolutePosition
                     local wsz  = cpWin.AbsoluteSize
                     local rpos = row.AbsolutePosition
                     local rsz  = row.AbsoluteSize
