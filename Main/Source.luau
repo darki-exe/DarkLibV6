@@ -2419,7 +2419,6 @@ end
                 Parent = row
             })
 
-
             local swatch = New("Frame", {
                 Size = UDim2.fromOffset(24, 24),
                 Position = UDim2.new(1, -36, 0.5, -12),
@@ -2439,10 +2438,8 @@ end
                 Parent = row
             })
 
-
             local cpGui = MakeOverlayGui("DarkLibV6_CPPopup_" .. cpCfg.Name, 9600)
 
-         
             local cpWin = New("Frame", {
                 Name = "CPWindow",
                 Size = UDim2.fromOffset(230, 0),
@@ -2456,7 +2453,6 @@ end
                 UIStroke(Theme.Border, 1, 0.2),
                 UIPadding(10, 10, 10, 10),
             })
-
 
             New("ImageLabel", {
                 Name = "Shadow",
@@ -2476,7 +2472,6 @@ end
             local mouse = LocalPlayer:GetMouse()
             local draggingSV, draggingH = false, false
 
-
             local satValBg = New("Frame", {
                 Size = UDim2.new(1, 0, 0, 110),
                 BackgroundColor3 = Color3.fromHSV(h, 1, 1),
@@ -2484,7 +2479,6 @@ end
                 Parent = cpWin
             }, {
                 UICorner(5),
-
                 New("UIGradient", {
                     Color = ColorSequence.new({
                         ColorSequenceKeypoint.new(0, Color3.new(1,1,1)),
@@ -2494,10 +2488,8 @@ end
                         NumberSequenceKeypoint.new(0, 0),
                         NumberSequenceKeypoint.new(1, 1)
                     }),
-                    Rotation = 90
                 }),
             })
-
 
             local darkOverlay = New("Frame", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -2515,6 +2507,7 @@ end
                         NumberSequenceKeypoint.new(0, 1),
                         NumberSequenceKeypoint.new(1, 0)
                     }),
+                    Rotation = 90
                 })
             })
 
@@ -2537,7 +2530,6 @@ end
                 ZIndex = 6,
                 Parent = satValBg
             })
-
 
             local hueSlider = New("Frame", {
                 Size = UDim2.new(1, 0, 0, 14),
@@ -2578,7 +2570,6 @@ end
                 ZIndex = 4,
                 Parent = hueSlider
             })
-
 
             local bottomRow = New("Frame", {
                 Size = UDim2.new(1, 0, 0, 24),
@@ -2626,7 +2617,6 @@ end
                 ZIndex = 4,
                 Parent = hexBg
             })
-
 
             local rgbRow = New("Frame", {
                 Size = UDim2.new(1, 0, 0, 22),
@@ -2678,9 +2668,7 @@ end
             local _, gBox = MakeRGBBox("G")
             local _, bBox = MakeRGBBox("B")
 
-
-            local CP_H = 10 + 110 + 10 + 14 + 10 + 24 + 8 + 22 + 10 
-
+            local CP_H = 10 + 110 + 10 + 14 + 10 + 24 + 8 + 22 + 10
 
             local function UpdateAll(silent)
                 local col3 = Color3.fromHSV(h, s, v)
@@ -2688,11 +2676,11 @@ end
                 local g2 = math.round(col3.G * 255)
                 local b2 = math.round(col3.B * 255)
 
-                swatch.BackgroundColor3     = col3
+                swatch.BackgroundColor3       = col3
                 colorPreview.BackgroundColor3 = col3
-                satValBg.BackgroundColor3   = Color3.fromHSV(h, 1, 1)
-                svKnob.Position             = UDim2.new(s, 0, 1 - v, 0)
-                hueKnob.Position            = UDim2.new(h, 0, 0, 0)
+                satValBg.BackgroundColor3     = Color3.fromHSV(h, 1, 1)
+                svKnob.Position               = UDim2.new(1 - s, 0, 1 - v, 0)
+                hueKnob.Position              = UDim2.new(h, 0, 0, 0)
                 hexBox.Text = string.format("#%02X%02X%02X", r, g2, b2)
                 rBox.Text = tostring(r)
                 gBox.Text = tostring(g2)
@@ -2705,7 +2693,6 @@ end
             end
 
             UpdateAll(true)
-
 
             svInteract.MouseButton1Down:Connect(function() draggingSV = true end)
             hInteract.MouseButton1Down:Connect(function() draggingH = true end)
@@ -2723,7 +2710,7 @@ end
                 if draggingSV then
                     local lx = math.clamp(mouse.X - satValBg.AbsolutePosition.X, 0, satValBg.AbsoluteSize.X)
                     local ly = math.clamp(mouse.Y - satValBg.AbsolutePosition.Y, 0, satValBg.AbsoluteSize.Y)
-                    s = lx / satValBg.AbsoluteSize.X
+                    s = 1 - (lx / satValBg.AbsoluteSize.X)
                     v = 1 - (ly / satValBg.AbsoluteSize.Y)
                     UpdateAll()
                 end
@@ -2733,7 +2720,6 @@ end
                     UpdateAll()
                 end
             end)
-
 
             hexBox.Focused:Connect(function()
                 Tween(hexBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent, Transparency = 0 })
@@ -2747,13 +2733,11 @@ end
                     h, s, v = col3:ToHSV()
                     UpdateAll()
                 else
-                    -- restaura hex válido
                     local c = Color3.fromHSV(h, s, v)
                     hexBox.Text = string.format("#%02X%02X%02X",
                         math.round(c.R*255), math.round(c.G*255), math.round(c.B*255))
                 end
             end)
-
 
             local function applyRGB()
                 local r2 = math.clamp(tonumber(rBox.Text) or 0, 0, 255)
@@ -2766,7 +2750,6 @@ end
             rBox.FocusLost:Connect(applyRGB)
             gBox.FocusLost:Connect(applyRGB)
             bBox.FocusLost:Connect(applyRGB)
-
 
             local function PositionAndOpenCP()
                 local rowAbs = row.AbsolutePosition
@@ -2813,7 +2796,6 @@ end
                 end
             end)
 
-
             UIS.InputBegan:Connect(function(input, gpe)
                 if _cpOpen and (
                     input.UserInputType == Enum.UserInputType.MouseButton1 or
@@ -2821,7 +2803,7 @@ end
                 ) then
                     local inset = game:GetService("GuiService"):GetGuiInset()
                     local mpos = UIS:GetMouseLocation() - inset
-                    local ppos = popupFrame.AbsolutePosition
+                    local wpos = cpWin.AbsolutePosition
                     local wsz  = cpWin.AbsoluteSize
                     local rpos = row.AbsolutePosition
                     local rsz  = row.AbsoluteSize
@@ -2871,6 +2853,7 @@ end
 
             return CPObj
         end
+
 
         return TabObj
     end
