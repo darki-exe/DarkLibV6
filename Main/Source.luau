@@ -572,7 +572,7 @@ function DarkLib:CreateWindow(cfg)
         BackgroundColor3 = Theme.BG3,
         ZIndex = 3,
         Parent = NavPanel
-    })
+    }, { UICorner(10) })
 
     local pAvatar = New("ImageLabel", {
         Size = UDim2.fromOffset(26, 26),
@@ -1058,7 +1058,7 @@ function DarkLib:CreateWindow(cfg)
 
     local _lockTooltip = New("TextLabel", {
         Size = UDim2.new(0, 200, 0, 20),
-        Position = UDim2.new(0.5, -118, 0.5, -10),
+        Position = UDim2.new(0.5, -200, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         Text = "",
@@ -1080,7 +1080,7 @@ function DarkLib:CreateWindow(cfg)
 
             _lockIcon = New("ImageLabel", {
                 Size = UDim2.fromOffset(20, 20),
-                Position = UDim2.new(0.5, -90, 0.5, -10),
+                Position = UDim2.new(0.5, 5, 0.5, 0),
                 AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundTransparency = 1,
                 Image = "rbxassetid://" .. _LOCKED_ID,
