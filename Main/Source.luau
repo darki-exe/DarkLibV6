@@ -3674,29 +3674,49 @@ function DarkLib:CreateToggleButton(cfg, windowObj)
             local win = windowObj._window
 
             if _visible then
-                win.Visible = true
-                Tween(win, { BackgroundTransparency = 0 }, "med")
-                for _, c in ipairs(win:GetDescendants()) do
-                    if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
-                        Tween(c, { TextTransparency = 0 }, "med")
-                    elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
-                        Tween(c, { ImageTransparency = 0 }, "med")
-                    elseif c:IsA("UIStroke") then
-                        Tween(c, { Transparency = 0 }, "med")
-                    end
-                end
-                Tween(btn:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent }, "fast")
-            else
-                Tween(win, { BackgroundTransparency = 1 }, "med")
-                for _, c in ipairs(win:GetDescendants()) do
-                    if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
-                        Tween(c, { TextTransparency = 1 }, "med")
-                    elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
-                        Tween(c, { ImageTransparency = 1 }, "med")
-                    elseif c:IsA("UIStroke") then
-                        Tween(c, { Transparency = 1 }, "med")
-                    end
-                end
+    win.Visible = true
+    win.BackgroundTransparency = 1
+
+    Tween(win, { BackgroundTransparency = 0 }, "med")
+
+    for _, c in ipairs(win:GetDescendants()) do
+        if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
+            c.TextTransparency = 1
+            Tween(c, { TextTransparency = 0 }, "med")
+
+        elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
+            c.ImageTransparency = 1
+            Tween(c, { ImageTransparency = 0 }, "med")
+
+        elseif c:IsA("UIStroke") then
+            c.Transparency = 1
+            Tween(c, { Transparency = 0 }, "med")
+
+        elseif c:IsA("Frame") or c:IsA("ScrollingFrame") then
+            c.BackgroundTransparency = 1
+            Tween(c, { BackgroundTransparency = 0 }, "med")
+        end
+    end
+
+    Tween(btn:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent }, "fast")
+
+else
+    Tween(win, { BackgroundTransparency = 1 }, "med")
+
+    for _, c in ipairs(win:GetDescendants()) do
+        if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
+            Tween(c, { TextTransparency = 1 }, "med")
+
+        elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
+            Tween(c, { ImageTransparency = 1 }, "med")
+
+        elseif c:IsA("UIStroke") then
+            Tween(c, { Transparency = 1 }, "med")
+
+        elseif c:IsA("Frame") or c:IsA("ScrollingFrame") then
+            Tween(c, { BackgroundTransparency = 1 }, "med")
+        end
+    end
                 Tween(btn:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.AccentDim }, "fast")
                 task.delay(0.38, function()
                     if not _visible then
