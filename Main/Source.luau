@@ -163,8 +163,7 @@ local function MakeDraggable(handle, target)
             dragStart = input.Position
             startPos  = target.Position
 
-            -- input.Changed dispara quando o estado muda para End,
-            -- mesmo que o dedo/cursor saia da área do handle
+
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging  = false
@@ -174,7 +173,7 @@ local function MakeDraggable(handle, target)
         end
     end)
 
-    -- fallback: UIS.InputEnded garante que o drag pare em qualquer caso
+
     UIS.InputEnded:Connect(function(input)
         if input == dragInput then
             dragging  = false
@@ -185,7 +184,7 @@ local function MakeDraggable(handle, target)
     UIS.InputChanged:Connect(function(input)
         if not dragging or input ~= dragInput then return end
         local delta = input.Position - dragStart
-        -- Posição direta (sem Tween) = responsivo e sem lag no mobile
+
         target.Position = UDim2.new(
             startPos.X.Scale,
             startPos.X.Offset + delta.X,
@@ -3571,7 +3570,7 @@ function DarkLib:CreateToggleButton(cfg, windowObj)
             dragStart  = input.Position
             startPos   = btn.Position
 
-            -- Detecta fim do drag mesmo que o dedo saia da área do botão
+            
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging  = false
@@ -3581,7 +3580,7 @@ function DarkLib:CreateToggleButton(cfg, windowObj)
         end
     end)
 
-    -- fallback para garantir que o drag sempre pare
+
     UIS.InputEnded:Connect(function(input)
         if input == dragInput then
             dragging  = false
@@ -3592,7 +3591,7 @@ function DarkLib:CreateToggleButton(cfg, windowObj)
     UIS.InputChanged:Connect(function(input)
         if not dragging or input ~= dragInput then return end
         local delta = input.Position - dragStart
-        -- Threshold de 4px para diferenciar tap de drag no mobile
+
         if math.abs(delta.X) > 4 or math.abs(delta.Y) > 4 then
             _dragMoved = true
         end
