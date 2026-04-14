@@ -132,6 +132,7 @@ local function MakeOverlayGui(name, displayOrder)
     local sg = New("ScreenGui", {
         Name = name,
         ResetOnSpawn = false,
+        IgnoreGuiInset = true,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         DisplayOrder = displayOrder or 9000,
     })
