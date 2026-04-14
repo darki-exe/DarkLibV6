@@ -2817,7 +2817,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
         ScaleType              = Enum.ScaleType.Fit,
         ZIndex                 = 6,
         Parent                 = iconFrame,
-    }, UICorner(5))
+    }, { UICorner(5) })
 
     New("TextLabel", {
         Size                   = UDim2.new(1, -76, 0, 16),
