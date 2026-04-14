@@ -803,59 +803,76 @@ function DarkLib:CreateWindow(cfg)
     end
 
     local _acrylicEnabled = false
-    local _acrylicViewport
-    local _acrylicCamera
-    local _acrylicConnection
+local _acrylicViewport
+local _acrylicCamera
+local _acrylicConnection
 
-    function WindowObj:SetAcrylic(enabled)
-        if enabled == _acrylicEnabled then return end
-        _acrylicEnabled = enabled
+function WindowObj:SetAcrylic(enabled)
+    if enabled == _acrylicEnabled then return end
+    _acrylicEnabled = enabled
 
-        if enabled then
-            _acrylicCamera = Instance.new("Camera")
-            _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
+    if enabled then
+        _acrylicCamera = Instance.new("Camera")
+        _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
 
-            _acrylicViewport = New("ViewportFrame", {
-                Size                 = UDim2.new(1, 0, 1, 0),
-                Position             = UDim2.new(0, 0, 0, 0),
-                BackgroundTransparency = 1,
-                ImageTransparency    = 0.3,
-                CurrentCamera        = _acrylicCamera,
-                ZIndex               = 0,
-                Parent               = Window
-            }, { UICorner(10) })
+        _acrylicViewport = New("ViewportFrame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 1,
+            ImageTransparency = 0.3,
+            CurrentCamera = _acrylicCamera,
+            ZIndex = 0,
+            Parent = Window
+        }, { UICorner(10) })
 
-            for _, obj in ipairs(workspace:GetChildren()) do
-                if obj:IsA("BasePart") or obj:IsA("Model") then
-                    local clone = obj:Clone()
+        local function safeClone(obj)
+            local ok, clone = pcall(function()
+                return obj:Clone()
+            end)
+
+            if ok and clone then
+                return clone
+            end
+            return nil
+        end
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
+                local clone = safeClone(obj)
+                if clone then
+                    clone.Anchored = true
+                    clone.CanCollide = false
                     clone.Parent = _acrylicViewport
                 end
             end
-
-            _acrylicConnection = RS.RenderStepped:Connect(function()
-                _acrylicCamera.CFrame = workspace.CurrentCamera.CFrame
-                _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
-            end)
-
-            _acrylicCamera.Parent = _acrylicViewport
-            Tween(Window, { BackgroundTransparency = 0.55 }, "med")
-        else
-            if _acrylicConnection then
-                _acrylicConnection:Disconnect()
-                _acrylicConnection = nil
-            end
-            if _acrylicViewport then
-                _acrylicViewport:Destroy()
-                _acrylicViewport = nil
-            end
-            _acrylicCamera = nil
-            Tween(Window, { BackgroundTransparency = 0 }, "med")
         end
-    end
 
-    
-    
-    
+        _acrylicConnection = RS.RenderStepped:Connect(function()
+            if not _acrylicCamera or not workspace.CurrentCamera then return end
+
+            _acrylicCamera.CFrame = workspace.CurrentCamera.CFrame
+            _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
+        end)
+
+        _acrylicCamera.Parent = _acrylicViewport
+
+        Tween(Window, { BackgroundTransparency = 0.55 }, "med")
+    else
+        if _acrylicConnection then
+            _acrylicConnection:Disconnect()
+            _acrylicConnection = nil
+        end
+
+        if _acrylicViewport then
+            _acrylicViewport:Destroy()
+            _acrylicViewport = nil
+        end
+
+        _acrylicCamera = nil
+
+        Tween(Window, { BackgroundTransparency = 0 }, "med")
+    end
+end
 
     function WindowObj:CreateTab(tabCfg)
         tabCfg = Merge({
