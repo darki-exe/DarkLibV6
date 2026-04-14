@@ -677,20 +677,23 @@ function DarkLib:CreateWindow(cfg)
             if not g and gethui then g = gethui():FindFirstChild(name) end
             if g then g:Destroy() end
         end
-        
+
         Tween(Window, { BackgroundTransparency = 1 }, "med")
         for _, c in ipairs(Window:GetDescendants()) do
             if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
-                Tween(c, { TextTransparency = 1, BackgroundTransparency = 1 }, "med")
-            elseif c:IsA("Frame") or c:IsA("ScrollingFrame") then
-                Tween(c, { BackgroundTransparency = 1 }, "med")
+                Tween(c, { TextTransparency = 1 }, "med")
             elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
-                Tween(c, { ImageTransparency = 1, BackgroundTransparency = 1 }, "med")
+                Tween(c, { ImageTransparency = 1 }, "med")
             elseif c:IsA("UIStroke") then
                 Tween(c, { Transparency = 1 }, "med")
             end
         end
-        task.delay(0.38, function() screenGui:Destroy() end)
+        task.delay(0.38, function()
+            if not WindowObj.Visible then
+                Window.Visible = false
+            end
+        end)
+        WindowObj.Visible = false
     end)
 
     local _minimized = false
