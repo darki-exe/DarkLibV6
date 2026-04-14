@@ -2782,7 +2782,158 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             if flag then DarkLib.Options[flag] = CPObj end
 
             return CPObj
+           end
+    
+    function TabObj:CreateDiscordInviter(cfg)
+    cfg = Merge({
+        Name   = "Discord Server",
+        Link   = "https://discord.gg/example",
+        IconID = "0",
+    }, cfg)
+
+    local row = New("Frame", {
+        Size             = UDim2.new(1, 0, 0, 72),
+        BackgroundColor3 = Theme.BG3,
+        ZIndex           = 4,
+        Parent           = Page,
+    }, {
+        UICorner(7),
+        UIStroke(Theme.Border, 1, 0.55),
+    })
+    row:SetAttribute("TargetBT", 0.55)
+
+    local iconFrame = New("Frame", {
+        Size             = UDim2.fromOffset(40, 40),
+        Position         = UDim2.new(0, 12, 0.5, -20),
+        BackgroundColor3 = Theme.BG2,
+        ZIndex           = 5,
+        Parent           = row,
+    }, { UICorner(10) })
+
+    New("ImageLabel", {
+        Size                   = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Image                  = "rbxassetid://" .. tostring(cfg.IconID),
+        ScaleType              = Enum.ScaleType.Fit,
+        ZIndex                 = 6,
+        Parent                 = iconFrame,
+    })
+
+    New("TextLabel", {
+        Size                   = UDim2.new(1, -76, 0, 16),
+        Position               = UDim2.new(0, 62, 0, 12),
+        BackgroundTransparency = 1,
+        Text                   = cfg.Name,
+        TextColor3             = Theme.Text,
+        Font                   = Enum.Font.GothamBold,
+        TextSize               = 13,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        ZIndex                 = 5,
+        Parent                 = row,
+    })
+
+    New("TextLabel", {
+        Size                   = UDim2.new(1, -76, 0, 14),
+        Position               = UDim2.new(0, 62, 0, 30),
+        BackgroundTransparency = 1,
+        Text                   = cfg.Link,
+        TextColor3             = Color3.fromRGB(88, 166, 255),
+        Font                   = Enum.Font.Gotham,
+        TextSize               = 11,
+        TextXAlignment         = Enum.TextXAlignment.Left,
+        TextTruncate           = Enum.TextTruncate.AtEnd,
+        ZIndex                 = 5,
+        Parent                 = row,
+    })
+
+    local joinBtn = New("TextButton", {
+        Size             = UDim2.fromOffset(58, 22),
+        Position         = UDim2.new(1, -70, 1, -30),
+        BackgroundColor3 = Theme.Green,
+        Text             = "Join",
+        TextColor3       = Color3.fromRGB(15, 15, 20),
+        Font             = Enum.Font.GothamBold,
+        TextSize         = 12,
+        AutoButtonColor  = false,
+        ZIndex           = 6,
+        Parent           = row,
+    }, { UICorner(5) })
+
+    local _copied = false
+
+    joinBtn.MouseButton1Click:Connect(function()
+        if _copied then return end
+        _copied = true
+
+        pcall(function()
+            if setclipboard then
+                setclipboard(cfg.Link)
+            elseif toclipboard then
+                toclipboard(cfg.Link)
+            end
+        end)
+
+        Tween(joinBtn, { BackgroundColor3 = Color3.fromRGB(88, 101, 242) }, "fast")
+        joinBtn.Text = "Copied!"
+
+        task.delay(3, function()
+            if not joinBtn or not joinBtn.Parent then return end
+            _copied = false
+            Tween(joinBtn, { BackgroundColor3 = Theme.Green }, "fast")
+            joinBtn.Text = "Join"
+        end)
+    end)
+
+    local interact = New("TextButton", {
+        Size                   = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text                   = "",
+        ZIndex                 = 7,
+        Parent                 = row,
+    })
+
+    interact.MouseButton1Click:Connect(function()
+        joinBtn.MouseButton1Click:Fire()
+    end)
+
+    interact.MouseEnter:Connect(function()
+        Tween(row, { BackgroundTransparency = 0.35 }, "fast")
+    end)
+    interact.MouseLeave:Connect(function()
+        Tween(row, { BackgroundTransparency = 0.55 }, "fast")
+    end)
+
+    joinBtn.ZIndex = 8
+
+    SpawnFadeIn(row)
+    AutoCanvas()
+
+    local InviterObj = { Settings = cfg }
+
+    function InviterObj:Set(newCfg)
+        cfg = Merge(cfg, newCfg)
+        for _, c in ipairs(row:GetDescendants()) do
+            if c:IsA("TextLabel") then
+                if c.Font == Enum.Font.GothamBold and c.TextSize == 13 then
+                    c.Text = cfg.Name
+                elseif c.TextColor3 == Color3.fromRGB(88, 166, 255) then
+                    c.Text = cfg.Link
+                end
+            elseif c:IsA("ImageLabel") then
+                c.Image = "rbxassetid://" .. tostring(cfg.IconID)
+            end
         end
+        InviterObj.Settings = cfg
+    end
+
+    function InviterObj:Destroy()
+        row:Destroy()
+        AutoCanvas()
+    end
+
+    MakeLockable(InviterObj, row)
+    return InviterObj
+end
 
         return TabObj
     end
@@ -3255,6 +3406,8 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             })
         end
     end
+    
+    
 
     return WindowObj
 end
