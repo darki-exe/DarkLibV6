@@ -1053,23 +1053,7 @@ function DarkLib:CreateWindow(cfg)
         Parent = _lockOverlay
     })
 
-    local _lockTooltip = New("TextLabel", {
-        Size = UDim2.new(0, 200, 0, 20),
-        Position = UDim2.new(0.5, -200, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundTransparency = 1,
-        Text = "",
-        TextColor3 = Theme.TextMuted,
-        Font = Enum.Font.GothamBold,
-        TextSize = 0,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        TextTruncate = Enum.TextTruncate.AtEnd,
-        ZIndex = 202,
-        Visible = false,
-        Parent = _lockOverlay
-    })
-
-    function compObj:ToggleLock(locked, _, tooltipText)
+    function compObj:ToggleLock(locked)
         _locked = locked
 
         if locked then
@@ -1087,19 +1071,11 @@ function DarkLib:CreateWindow(cfg)
                 Parent = _lockOverlay
             })
 
-            if tooltipText ~= nil and tostring(tooltipText) ~= "" then
-                _lockTooltip.Text = tostring(tooltipText)
-                _lockTooltip.Visible = true
-            else
-                _lockTooltip.Visible = false
-            end
-
             _lockOverlay.Visible = true
             Tween(_lockOverlay, { BackgroundTransparency = 0.25 })
 
         else
             _locked = false
-            _lockTooltip.Visible = false
 
             if _lockIcon then
                 local t1 = TS:Create(_lockIcon, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -3308,11 +3284,8 @@ function DarkLib:Dialog(data)
     local CARD_W   = 380
     local PAD_H    = 22
     local PAD_V    = 24
-    local TITLE_H  = 22
     local SEP_GAP  = 10
-    local SEP_Y    = PAD_V + TITLE_H + SEP_GAP
     local DESC_GAP = 12
-    local DESC_Y   = SEP_Y + 1 + DESC_GAP
     local BTN_H    = 38
     local BTN_GAP  = 10
     local BTN_TOP_GAP = 16
@@ -3334,7 +3307,7 @@ function DarkLib:Dialog(data)
 
     local accentBar = New("Frame", {
         Name = "AccentBar",
-        Size = UDim2.new(0, 3, 0, TITLE_H + 4),
+        Size = UDim2.new(0, 3, 0, 26),
         Position = UDim2.new(0, PAD_H - 10, 0, PAD_V - 2),
         BackgroundColor3 = Theme.Accent,
         BackgroundTransparency = 1,
@@ -3344,7 +3317,7 @@ function DarkLib:Dialog(data)
 
     local titleLbl = New("TextLabel", {
         Name = "Title",
-        Size = UDim2.new(1, -(PAD_H * 2), 0, TITLE_H),
+        Size = UDim2.new(1, -(PAD_H * 2), 0, 22),
         Position = UDim2.new(0, PAD_H, 0, PAD_V),
         BackgroundTransparency = 1,
         Text = data.Title,
@@ -3385,13 +3358,29 @@ function DarkLib:Dialog(data)
     })
 
     task.wait()
-    descLbl.Size = UDim2.new(1, -(PAD_H * 2), 0, math.huge)
+
+    
+    titleLbl.Size = UDim2.new(1, -(PAD_H * 2), 0, math.huge)
+    local titleH = math.max(titleLbl.TextBounds.Y, 1)
+    titleLbl.Size = UDim2.new(1, -(PAD_H * 2), 0, titleH)
+
+
+    local SEP_Y_real = PAD_V + titleH + SEP_GAP
+    sep.Position   = UDim2.new(0, PAD_H, 0, SEP_Y_real)
+    accentBar.Size = UDim2.new(0, 3, 0, titleH + 4)
+
+
+    local DESC_Y_real = SEP_Y_real + 1 + DESC_GAP
+    descLbl.Position  = UDim2.new(0, PAD_H, 0, DESC_Y_real)
+    descLbl.Size      = UDim2.new(1, -(PAD_H * 2), 0, math.huge)
     local descH = descLbl.TextBounds.Y
     if descH < 1 then descH = 0 end
     descLbl.Size = UDim2.new(1, -(PAD_H * 2), 0, descH)
 
     local numBtns    = #data.Buttons
-    local btnsTop    = DESC_Y + descH + (descH > 0 and BTN_TOP_GAP or 0)
+    local btnsTop    = DESC_Y_real + descH + (descH > 0 and BTN_TOP_GAP or SEP_GAP)
+
+
     local numRows    = (numBtns <= 2) and 1 or 2
     local totalBtnsH = numRows * BTN_H + (numRows - 1) * BTN_GAP
 
