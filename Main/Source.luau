@@ -4,7 +4,6 @@ local DarkLib = {
     Version = "V6"
 }
 
--- Services
 local UIS     = game:GetService("UserInputService")
 local TS      = game:GetService("TweenService")
 local RS      = game:GetService("RunService")
@@ -12,11 +11,8 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
--- Internal state
 local ActiveWindows = {}
 local _isStudio = RS:IsStudio()
-
--- ─── Utilities ───────────────────────────────────────────────────────────────
 
 local function Merge(defaults, passed)
     passed = passed or {}
@@ -64,8 +60,6 @@ local function Round(n, inc)
     return math.floor(n / inc + 0.5) * inc
 end
 
--- ─── Theme ───────────────────────────────────────────────────────────────────
-
 local Theme = {
     BG          = Color3.fromRGB(14, 14, 18),
     BG2         = Color3.fromRGB(20, 20, 26),
@@ -88,8 +82,6 @@ local Theme = {
 }
 
 DarkLib.Theme = Theme
-
--- ─── GUI Builder helpers ──────────────────────────────────────────────────────
 
 local function New(class, props, children)
     local inst = Instance.new(class)
@@ -133,8 +125,6 @@ local function UIPadding(t, b, l, r)
     })
 end
 
--- ─── ScreenGui helper (para popups flutuantes) ────────────────────────────────
-
 local function MakeOverlayGui(name, displayOrder)
     local existing = CoreGui:FindFirstChild(name)
     if existing then existing:Destroy() end
@@ -157,8 +147,6 @@ local function MakeOverlayGui(name, displayOrder)
 
     return sg
 end
-
--- ─── Draggable ───────────────────────────────────────────────────────────────
 
 local function MakeDraggable(handle, target)
     local dragging, dragStart, startPos = false, nil, nil
@@ -196,8 +184,6 @@ local function MakeDraggable(handle, target)
         end
     end)
 end
-
--- ─── Notifications ───────────────────────────────────────────────────────────
 
 local NotifHolder
 
@@ -323,8 +309,6 @@ function DarkLib:Notify(data)
     end)
 end
 
--- ─── CreateWindow ─────────────────────────────────────────────────────────────
-
 function DarkLib:CreateWindow(cfg)
     cfg = Merge({
         Title         = "DarkLib V6",
@@ -343,7 +327,7 @@ function DarkLib:CreateWindow(cfg)
         SaveKey  = false,
     }, cfg.KeySettings)
 
-    -- ── Root ScreenGui ──
+    
     local existingRoot = CoreGui:FindFirstChild("DarkLibV6_Root")
     if existingRoot then existingRoot:Destroy() end
 
@@ -363,12 +347,12 @@ function DarkLib:CreateWindow(cfg)
         screenGui.Parent = CoreGui
     end
 
-    -- ── Viewport-based sizing ──
+    
     local vp = workspace.CurrentCamera.ViewportSize
     local winW = math.min(math.max(vp.X - 120, 560), 720)
     local winH = math.min(math.max(vp.Y - 100, 380), 480)
 
-    -- ── Main Window Frame ──
+    
     local Window = New("Frame", {
         Name = "DarkWindow",
         Size = UDim2.fromOffset(winW, winH),
@@ -378,7 +362,7 @@ function DarkLib:CreateWindow(cfg)
         Parent = screenGui
     }, { UICorner(10) })
 
-    -- Shadow
+    
     New("ImageLabel", {
         Name = "Shadow",
         Size = UDim2.new(1, 40, 1, 40),
@@ -393,10 +377,10 @@ function DarkLib:CreateWindow(cfg)
         Parent = Window
     })
 
-    -- Outer border
+    
     UIStroke(Theme.Border, 1, 0).Parent = Window
 
-    -- ── Top bar ──
+    
     local TopBar = New("Frame", {
         Name = "TopBar",
         Size = UDim2.new(1, 0, 0, 42),
@@ -455,7 +439,7 @@ function DarkLib:CreateWindow(cfg)
         Parent = TopBar
     })
 
-    -- ── Control button factory ──
+    
     local _ctrlOffset = -12
 
     local function MakeCtrlBtn(accentColor, iconId, fallbackText)
@@ -526,7 +510,7 @@ function DarkLib:CreateWindow(cfg)
     local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(190, 60, 90),  nil, "✕")
     local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, "─")
 
-    -- ── Navigation sidebar ──
+    
     local NavWidth = 140
     local NavPanel = New("Frame", {
         Name = "NavPanel",
@@ -628,7 +612,7 @@ function DarkLib:CreateWindow(cfg)
         UIPadding(8, 0, 0, 0)
     })
 
-    -- ── Content area ──
+    
     local ContentArea = New("Frame", {
         Name = "ContentArea",
         Size = UDim2.new(1, -NavWidth, 1, -42),
@@ -662,10 +646,10 @@ function DarkLib:CreateWindow(cfg)
         Parent = ContentArea
     })
 
-    -- ── Drag ──
+    
     MakeDraggable(TopBar, Window)
 
-    -- ── Window-level state ──
+    
     local WindowObj = {
         _root       = screenGui,
         _window     = Window,
@@ -676,15 +660,15 @@ function DarkLib:CreateWindow(cfg)
         Visible     = true
     }
 
-    -- ── Close / Minimize ──
+    
     closeBtn.MouseButton1Click:Connect(function()
-        -- destroy all overlay GUIs for this window
+        
         for _, name in ipairs({"DarkLibV6_DDPopup", "DarkLibV6_CPPopup"}) do
             local g = CoreGui:FindFirstChild(name)
             if not g and gethui then g = gethui():FindFirstChild(name) end
             if g then g:Destroy() end
         end
-        -- fade-out before destroy
+        
         Tween(Window, { BackgroundTransparency = 1 }, "med")
         for _, c in ipairs(Window:GetDescendants()) do
             if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
@@ -740,7 +724,7 @@ function DarkLib:CreateWindow(cfg)
         end
     end)
 
-    -- ── Loading screen ──
+    
     if cfg.LoadingScreen then
         local Loader = New("Frame", {
             Name = "Loader",
@@ -868,9 +852,9 @@ function DarkLib:CreateWindow(cfg)
         end
     end
 
-    -- ─────────────────────────────────────────────────────────────────────────
-    -- ── CreateTab ────────────────────────────────────────────────────────────
-    -- ─────────────────────────────────────────────────────────────────────────
+    
+    
+    
 
     function WindowObj:CreateTab(tabCfg)
         tabCfg = Merge({
@@ -1045,7 +1029,7 @@ function DarkLib:CreateWindow(cfg)
             return f
         end
 
-        -- ─── MakeLockable ────────────────────────────────────────────────────
+        
     local function MakeLockable(compObj, row)
     local _locked = false
     local _lockIcon = nil
@@ -1163,7 +1147,7 @@ function DarkLib:CreateWindow(cfg)
     end
 end
 
-        -- ─── CreateButton ────────────────────────────────────────────────────
+        
         function TabObj:CreateButton(btnCfg, flag)
             btnCfg = Merge({
                 Name = "Button",
@@ -1245,7 +1229,7 @@ end
             return BtnObj
         end
 
-        -- ─── CreateToggle ────────────────────────────────────────────────────
+        
         function TabObj:CreateToggle(togCfg, flag)
             togCfg = Merge({
                 Name = "Toggle",
@@ -1375,7 +1359,7 @@ end
             return TogObj
         end
 
-        -- ─── CreateSlider ─────────────────────────────────────────────────────
+        
         function TabObj:CreateSlider(slCfg, flag)
             slCfg = Merge({
                 Name = "Slider",
@@ -1532,7 +1516,7 @@ end
             return SlObj
         end
 
-        -- ─── CreateInput ──────────────────────────────────────────────────────
+        
         function TabObj:CreateInput(inCfg, flag)
             inCfg = Merge({
                 Name = "Input",
@@ -1667,7 +1651,7 @@ end
             return InObj
         end
 
-        -- ─── CreateDropdown ───────────────────────────────────────────────────
+        
 
         function TabObj:CreateDropdown(ddCfg, flag)
             ddCfg = Merge({
@@ -1739,7 +1723,6 @@ end
                 Parent = row
             })
 
-
             local ddGui = MakeOverlayGui("DarkLibV6_DDPopup_" .. ddCfg.Name, 9500)
 
             local popupFrame = New("Frame", {
@@ -1754,7 +1737,6 @@ end
                 UICorner(7),
                 UIStroke(Theme.Border, 1, 0.25),
             })
-
 
             local popupScroll = New("ScrollingFrame", {
                 Size = UDim2.new(1, 0, 1, 0),
@@ -1800,7 +1782,6 @@ end
                 for _, opt in ipairs(optList) do
                     local isSelected = TableContains(selected, opt)
 
-
                     local optRow = New("Frame", {
                         Name = tostring(opt),
                         Size = UDim2.new(1, 0, 0, 30),
@@ -1809,7 +1790,6 @@ end
                         ZIndex = 3,
                         Parent = popupScroll
                     }, { UICorner(5) })
-
 
                     local selBar = New("Frame", {
                         Name = "SelBar",
@@ -1877,7 +1857,6 @@ end
                 end
             end
 
-
             local function PositionAndOpenPopup()
                 local rowAbs = row.AbsolutePosition
                 local rowSz  = row.AbsoluteSize
@@ -1890,7 +1869,7 @@ end
                 local contentH = math.min(optCount * 32 + 8, 200)
                 local popW = math.max(rowSz.X, 160)
 
-                -- decide se abre pra baixo ou pra cima
+                
                 local spaceBelow = vp.Y - (rowAbs.Y + rowSz.Y)
                 local openUp = spaceBelow < contentH + 10
 
@@ -1916,7 +1895,6 @@ end
                     ClosePopup()
                 end
             end)
-
 
             UIS.InputBegan:Connect(function(input, gpe)
                 if open and (
@@ -1978,7 +1956,6 @@ end
                 if open then RebuildPopup() end
             end
 
-
             local _lockOverlay2 = New("Frame", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundColor3 = Theme.BG,
@@ -2019,7 +1996,7 @@ end
             return DDObj
         end
 
-        -- ─── CreateBind ───────────────────────────────────────────────────────
+        
         function TabObj:CreateBind(bndCfg, flag)
             bndCfg = Merge({
                 Name = "Keybind",
@@ -2168,7 +2145,7 @@ end
 
         TabObj.CreateKeybind = TabObj.CreateBind
 
-        -- ─── CreateLabel ──────────────────────────────────────────────────────
+        
         function TabObj:CreateLabel(lbCfg)
             lbCfg = Merge({
                 Text = "Label",
@@ -2221,7 +2198,7 @@ end
             return LbObj
         end
 
-        -- ─── CreateParagraph ──────────────────────────────────────────────────
+        
         function TabObj:CreateParagraph(pgCfg)
             pgCfg = Merge({
                 Title = "Paragraph",
@@ -2296,7 +2273,7 @@ end
             return PgObj
         end
 
-        -- ─── CreateDivider ────────────────────────────────────────────────────
+        
 
         function TabObj:CreateDivider(divCfg)
     divCfg = Merge({
@@ -2359,7 +2336,6 @@ end
             lineRight.Position = UDim2.fromOffset(totalWidth - halfSpace, h / 2)
         end
 
-
         divRow:GetPropertyChangedSignal("AbsoluteSize"):Connect(Update)
         textLbl:GetPropertyChangedSignal("TextBounds"):Connect(Update)
 
@@ -2373,7 +2349,6 @@ end
             Parent = divRow
         }, { UICorner(1) })
     end
-
 
     for _, c in ipairs(divRow:GetDescendants()) do
         if c:IsA("Frame") then
@@ -2836,14 +2811,12 @@ function TabObj:CreateColorPicker(cpCfg, flag)
         return TabObj
     end
 
-
     if cfg.KeySystem then
         local KeySettings = cfg.KeySettings
         local _keyAttempts   = 0
         local _keyMaxTries   = KeySettings.MaxAttempts or 5
         local _keyLocked     = false
         local _keySubmitting = false
-
 
         local keyScreen = New("Frame", {
             Name = "KeyScreen",
@@ -2854,7 +2827,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             Parent = Window
         }, { UICorner(10) })
 
-
         New("UIGradient", {
             Color = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 18, 30)),
@@ -2863,7 +2835,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             Rotation = 135,
             Parent = keyScreen
         })
-
 
         local keyAccentBar = New("Frame", {
             Size = UDim2.new(0, 60, 0, 3),
@@ -2874,7 +2845,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             ZIndex = 202,
             Parent = keyScreen
         }, { UICorner(4) })
-
 
         if KeySettings.Icon and KeySettings.Icon ~= "" then
             New("ImageLabel", {
@@ -2890,7 +2860,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             })
         end
 
-
         local keyTitle = New("TextLabel", {
             Size = UDim2.new(0, 280, 0, 28),
             Position = UDim2.new(0.5, -140, 0.5, -82),
@@ -2903,7 +2872,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             ZIndex = 201,
             Parent = keyScreen
         })
-
 
         local keySubtitle = New("TextLabel", {
             Size = UDim2.new(0, 280, 0, 16),
@@ -2932,7 +2900,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             Parent = keyScreen
         })
 
-
         local keySep = New("Frame", {
             Size = UDim2.new(0, 240, 0, 1),
             Position = UDim2.new(0.5, -120, 0.5, -16),
@@ -2942,7 +2909,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             ZIndex = 201,
             Parent = keyScreen
         })
-
 
         local keyInputBg = New("Frame", {
             Size = UDim2.new(0, 248, 0, 36),
@@ -2972,7 +2938,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             Parent = keyInputBg
         })
 
-
         local keyPasteBtn = New("ImageButton", {
             Size = UDim2.new(0, 26, 0, 26),
             Position = UDim2.new(1, -32, 0.5, -13),
@@ -2986,7 +2951,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             ZIndex = 203,
             Parent = keyInputBg
         }, { UICorner(5) })
-
 
         local keyBtnRow = New("Frame", {
             Size = UDim2.new(0, 248, 0, 32),
@@ -3007,7 +2971,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             ZIndex = 202,
             Parent = keyBtnRow
         }, { UICorner(7) })
-
 
         local keyGetBtn
         if KeySettings.KeyLink and KeySettings.KeyLink ~= "" then
@@ -3039,7 +3002,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             ZIndex = 201,
             Parent = keyScreen
         })
-
 
         local function _keyFadeIn(obj, extraDelay)
             task.delay(extraDelay or 0, function()
@@ -3077,7 +3039,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             task.delay(0.42, function() Tween(keyStatus, { TextTransparency = 0 }, "slow") end)
         end)
 
-
         local function _keyFadeOut(cb)
             Tween(keyScreen, { BackgroundTransparency = 1 }, "med")
             for _, c in ipairs(keyScreen:GetDescendants()) do
@@ -3097,7 +3058,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             end)
         end
 
-
         local function _shakeInput()
             local orig = keyInputBg.Position
             local ox = orig.X.Offset
@@ -3111,7 +3071,6 @@ function TabObj:CreateColorPicker(cpCfg, flag)
                 end)
             end
         end
-
 
         local function _doSubmit()
             if _keySubmitting or _keyLocked then return end
@@ -3188,13 +3147,12 @@ function TabObj:CreateColorPicker(cpCfg, flag)
 
         keySubmit.MouseButton1Click:Connect(_doSubmit)
 
-
         keyBox.FocusLost:Connect(function(enter)
             if enter then _doSubmit() end
         end)
 
         keyPasteBtn.MouseButton1Click:Connect(function()
-            -- tenta todas as formas possíveis de pegar o clipboard
+            
             local clip = nil
             if type(getclipboard) == "function" then
                 local ok, res = pcall(getclipboard)
@@ -3214,14 +3172,13 @@ function TabObj:CreateColorPicker(cpCfg, flag)
                     Tween(keyPasteBtn, { BackgroundColor3 = Theme.BG3, ImageColor3 = Theme.TextDim }, "med")
                 end)
             else
-                -- feedback de erro: pisca vermelho
+                
                 Tween(keyPasteBtn, { ImageColor3 = Theme.Red }, "fast")
                 task.delay(0.5, function()
                     Tween(keyPasteBtn, { ImageColor3 = Theme.TextDim }, "med")
                 end)
             end
         end)
-
 
         if keyGetBtn and KeySettings.KeyLink then
             keyGetBtn.MouseButton1Click:Connect(function()
@@ -3326,33 +3283,10 @@ function TabObj:CreateColorPicker(cpCfg, flag)
     return WindowObj
 end
 
--- ─── Dialog ──────────────────────────────────────────────────────────────────
-
---[[
-    DarkLib:Dialog(data)
-
-    data = {
-        Title       = "string",
-        Description = "string",
-        Buttons     = {
-            {
-                Text        = "string",
-                Color       = Color3,          -- fundo do botão
-                StrokeColor = Color3,          -- cor do stroke (opcional)
-                StrokeThick = number,          -- espessura do stroke (opcional, default 1)
-                Round       = number,          -- raio do corner (opcional, default 6)
-                Callback    = function(id) end -- chamado ao clicar; id = índice do botão (1-4)
-            },
-            ...  -- mínimo 1, máximo 4
-        },
-        Callback = function(buttonIndex) end   -- callback global opcional
-    }
-]]
-
 function DarkLib:Dialog(data)
-    assert(type(data) == "table", "Dialog: data deve ser uma tabela")
+    assert(type(data) == "table", "Dialog: data must be a table")
     assert(type(data.Buttons) == "table" and #data.Buttons >= 1 and #data.Buttons <= 4,
-        "Dialog: Buttons deve ter entre 1 e 4 entradas")
+        "Dialog: Buttons must contain between 1 and 4 entries")
 
     data = Merge({
         Title       = "Dialog",
@@ -3360,10 +3294,8 @@ function DarkLib:Dialog(data)
         Callback    = nil,
     }, data)
 
-    -- ── overlay ScreenGui ──────────────────────────────────────────────────
     local sg = MakeOverlayGui("DarkLibV6_Dialog", 10000)
 
-    -- fundo escurecido
     local backdrop = New("Frame", {
         Name = "Backdrop",
         Size = UDim2.new(1, 0, 1, 0),
@@ -3373,8 +3305,18 @@ function DarkLib:Dialog(data)
         Parent = sg,
     })
 
-    -- card central
-    local CARD_W = 320
+    local CARD_W   = 380
+    local PAD_H    = 22
+    local PAD_V    = 24
+    local TITLE_H  = 22
+    local SEP_GAP  = 10
+    local SEP_Y    = PAD_V + TITLE_H + SEP_GAP
+    local DESC_GAP = 12
+    local DESC_Y   = SEP_Y + 1 + DESC_GAP
+    local BTN_H    = 38
+    local BTN_GAP  = 10
+    local BTN_TOP_GAP = 16
+
     local card = New("Frame", {
         Name = "Card",
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -3388,25 +3330,22 @@ function DarkLib:Dialog(data)
     }, {
         UICorner(10),
         UIStroke(Theme.Border, 1, 0),
-        UIPadding(18, 20, 20, 20),
     })
 
-    -- barra roxa na borda esquerda (igual ao indicador de tab ativa)
     local accentBar = New("Frame", {
         Name = "AccentBar",
-        Size = UDim2.new(0, 3, 1, -20),
-        Position = UDim2.new(0, 2, 0, 10),
+        Size = UDim2.new(0, 3, 0, TITLE_H + 4),
+        Position = UDim2.new(0, PAD_H - 10, 0, PAD_V - 2),
         BackgroundColor3 = Theme.Accent,
         BackgroundTransparency = 1,
         ZIndex = 5,
         Parent = card,
     }, { UICorner(3) })
 
-    -- título
     local titleLbl = New("TextLabel", {
         Name = "Title",
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(1, -(PAD_H * 2), 0, TITLE_H),
+        Position = UDim2.new(0, PAD_H, 0, PAD_V),
         BackgroundTransparency = 1,
         Text = data.Title,
         TextColor3 = Theme.Text,
@@ -3418,22 +3357,20 @@ function DarkLib:Dialog(data)
         Parent = card,
     })
 
-    -- separador
     local sep = New("Frame", {
         Name = "Sep",
-        Size = UDim2.new(1, 0, 0, 1),
-        Position = UDim2.new(0, 0, 0, 26),
+        Size = UDim2.new(1, -(PAD_H * 2), 0, 1),
+        Position = UDim2.new(0, PAD_H, 0, SEP_Y),
         BackgroundColor3 = Theme.Border,
-        BackgroundTransparency = 0.5,
+        BackgroundTransparency = 0.4,
         ZIndex = 3,
         Parent = card,
     })
 
-    -- descrição
     local descLbl = New("TextLabel", {
         Name = "Desc",
-        Size = UDim2.new(1, 0, 0, 0),
-        Position = UDim2.new(0, 0, 0, 34),
+        Size = UDim2.new(1, -(PAD_H * 2), 0, 0),
+        Position = UDim2.new(0, PAD_H, 0, DESC_Y),
         BackgroundTransparency = 1,
         Text = data.Description,
         TextColor3 = Theme.TextDim,
@@ -3447,43 +3384,28 @@ function DarkLib:Dialog(data)
         Parent = card,
     })
 
-    -- medir altura da descrição
     task.wait()
-    descLbl.Size = UDim2.new(1, 0, 0, math.huge)
+    descLbl.Size = UDim2.new(1, -(PAD_H * 2), 0, math.huge)
     local descH = descLbl.TextBounds.Y
     if descH < 1 then descH = 0 end
-    descLbl.Size = UDim2.new(1, 0, 0, descH)
+    descLbl.Size = UDim2.new(1, -(PAD_H * 2), 0, descH)
 
-    -- ── layout de botões ───────────────────────────────────────────────────
-    --
-    --  1 botão  → 1 linha,  largura 90%,  centralizado no X
-    --  2 botões → 1 linha,  cada um ~45%, lado a lado
-    --  3 botões → linha 1: botões 1 e 2 lado a lado (~45% cada)
-    --             linha 2: botão 3, largura 90%, na sua posição (não centraliza Y)
-    --  4 botões → linha 1: botões 1 e 2 lado a lado
-    --             linha 2: botões 3 e 4 lado a lado
-    --
-    local BTN_H   = 34
-    local BTN_GAP = 8   -- gap entre botões na mesma linha e entre linhas
-    local numBtns = #data.Buttons
-    local btnsTop = 34 + descH + (descH > 0 and 14 or 0)
-
-    -- quantas linhas de botões existem
-    local numRows = (numBtns <= 2) and 1 or 2
+    local numBtns    = #data.Buttons
+    local btnsTop    = DESC_Y + descH + (descH > 0 and BTN_TOP_GAP or 0)
+    local numRows    = (numBtns <= 2) and 1 or 2
     local totalBtnsH = numRows * BTN_H + (numRows - 1) * BTN_GAP
 
     local btnContainer = New("Frame", {
         Name = "Buttons",
-        Size = UDim2.new(1, 0, 0, totalBtnsH),
-        Position = UDim2.new(0, 0, 0, btnsTop),
+        Size = UDim2.new(1, -(PAD_H * 2), 0, totalBtnsH),
+        Position = UDim2.new(0, PAD_H, 0, btnsTop),
         BackgroundTransparency = 1,
         ZIndex = 3,
         Parent = card,
     })
 
-    local CARD_H = btnsTop + totalBtnsH + 18
+    local CARD_H = btnsTop + totalBtnsH + PAD_V
 
-    -- ── função de fechar (declarada antes de _makeBtn para ser upvalue) ────
     local _closed = false
     local _closeDialog
     _closeDialog = function(btnIndex)
@@ -3515,17 +3437,15 @@ function DarkLib:Dialog(data)
         end
     end
 
-    -- ── helper: cria um botão com posição/tamanho em escala ────────────────
     local function _makeBtn(i, btnData, posX, posY, sizeX)
         local bColor = btnData.Color       or Theme.Accent
         local sColor = btnData.StrokeColor or Theme.Border
         local sThick = btnData.StrokeThick or 1
-        local bRound = btnData.Round       or 6
+        local bRound = btnData.Round       or 7
         local bText  = btnData.Text        or ("Button " .. i)
 
         local btn = New("TextButton", {
             Name = "Btn_" .. i,
-            -- posição e tamanho em escala relativa ao container
             Position = UDim2.new(posX, 0, posY, 0),
             Size     = UDim2.new(sizeX, 0, 0, BTN_H),
             BackgroundColor3 = bColor,
@@ -3558,42 +3478,30 @@ function DarkLib:Dialog(data)
         return btn
     end
 
-    -- rowY: posição Y em escala dentro do container para cada linha
-    -- linha 1 sempre começa em 0; linha 2 começa após BTN_H + BTN_GAP
-    local row1Y = 0
-    local row2Y = (BTN_H + BTN_GAP) / totalBtnsH  -- escala relativa
-
-    -- gap entre os dois botões na mesma linha (em escala X)
-    local PAIR_GAP_SCALE = BTN_GAP / (CARD_W - 40)  -- 40 = padding left+right do card
-    local PAIR_W = (1 - PAIR_GAP_SCALE) / 2          -- largura de cada btn no par
+    local row2Y          = (BTN_H + BTN_GAP) / totalBtnsH
+    local PAIR_GAP_SCALE = BTN_GAP / (CARD_W - PAD_H * 2)
+    local PAIR_W         = (1 - PAIR_GAP_SCALE) / 2
 
     if numBtns == 1 then
-        -- 1 botão: ocupa 100% da largura
         _makeBtn(1, data.Buttons[1], 0, 0, 1)
 
     elseif numBtns == 2 then
-        -- 2 botões: lado a lado, cada um ~50% menos o gap
-        _makeBtn(1, data.Buttons[1], 0,                        0, PAIR_W)
-        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE,  0, PAIR_W)
+        _makeBtn(1, data.Buttons[1], 0,                       0, PAIR_W)
+        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE, 0, PAIR_W)
 
     elseif numBtns == 3 then
-        -- linha 1: botões 1 e 2 lado a lado
-        _makeBtn(1, data.Buttons[1], 0,                        0,     PAIR_W)
-        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE,  0,     PAIR_W)
-        -- linha 2: botão 3 centralizado (mesma largura que os de cima, centrado no X)
+        _makeBtn(1, data.Buttons[1], 0,                       0,     PAIR_W)
+        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE, 0,     PAIR_W)
         local centerX = (1 - PAIR_W) / 2
-        _makeBtn(3, data.Buttons[3], centerX,                  row2Y, PAIR_W)
+        _makeBtn(3, data.Buttons[3], centerX,                 row2Y, PAIR_W)
 
     elseif numBtns == 4 then
-        -- linha 1: botões 1 e 2
-        _makeBtn(1, data.Buttons[1], 0,                        0,     PAIR_W)
-        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE,  0,     PAIR_W)
-        -- linha 2: botões 3 e 4
-        _makeBtn(3, data.Buttons[3], 0,                        row2Y, PAIR_W)
-        _makeBtn(4, data.Buttons[4], PAIR_W + PAIR_GAP_SCALE,  row2Y, PAIR_W)
+        _makeBtn(1, data.Buttons[1], 0,                       0,     PAIR_W)
+        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE, 0,     PAIR_W)
+        _makeBtn(3, data.Buttons[3], 0,                       row2Y, PAIR_W)
+        _makeBtn(4, data.Buttons[4], PAIR_W + PAIR_GAP_SCALE, row2Y, PAIR_W)
     end
 
-    -- ── animar entrada ─────────────────────────────────────────────────────
     card.Size = UDim2.new(0, CARD_W, 0, CARD_H * 0.88)
 
     Tween(backdrop, { BackgroundTransparency = 0.55 }, "med")
@@ -3617,7 +3525,5 @@ function DarkLib:Dialog(data)
         end
     end
 end
-
--- ─────────────────────────────────────────────────────────────────────────────
 
 return DarkLib
