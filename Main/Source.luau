@@ -941,7 +941,7 @@ function DarkLib:CreateWindow(cfg)
     end
     Tween(frame, { BackgroundTransparency = frame:GetAttribute("TargetBT") or 0.55 }, "slow")
     for _, c in ipairs(frame:GetDescendants()) do
-        if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then  -- ← adiciona TextButton aqui
+        if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then
             Tween(c, { TextTransparency = c:GetAttribute("TargetTT") or 0 }, "slow")
         elseif c:IsA("ImageLabel") then
             Tween(c, { ImageTransparency = c:GetAttribute("TargetIT") or 0 }, "slow")
