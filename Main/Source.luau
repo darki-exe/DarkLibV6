@@ -929,27 +929,27 @@ function DarkLib:CreateWindow(cfg)
         end
 
         local function SpawnFadeIn(frame)
-            frame.BackgroundTransparency = 1
-            for _, c in ipairs(frame:GetDescendants()) do
-                if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then
-                    c.TextTransparency = 1
-                elseif c:IsA("ImageLabel") then
-                    c.ImageTransparency = 1
-                elseif c:IsA("UIStroke") then
-                    c.Transparency = 1
-                end
-            end
-            Tween(frame, { BackgroundTransparency = frame:GetAttribute("TargetBT") or 0.55 }, "slow")
-            for _, c in ipairs(frame:GetDescendants()) do
-                if c:IsA("TextLabel") or c:IsA("TextBox") then
-                    Tween(c, { TextTransparency = c:GetAttribute("TargetTT") or 0 }, "slow")
-                elseif c:IsA("ImageLabel") then
-                    Tween(c, { ImageTransparency = c:GetAttribute("TargetIT") or 0 }, "slow")
-                elseif c:IsA("UIStroke") then
-                    Tween(c, { Transparency = c:GetAttribute("TargetST") or 0.55 }, "slow")
-                end
-            end
+    frame.BackgroundTransparency = 1
+    for _, c in ipairs(frame:GetDescendants()) do
+        if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then
+            c.TextTransparency = 1
+        elseif c:IsA("ImageLabel") then
+            c.ImageTransparency = 1
+        elseif c:IsA("UIStroke") then
+            c.Transparency = 1
         end
+    end
+    Tween(frame, { BackgroundTransparency = frame:GetAttribute("TargetBT") or 0.55 }, "slow")
+    for _, c in ipairs(frame:GetDescendants()) do
+        if c:IsA("TextLabel") or c:IsA("TextBox") or c:IsA("TextButton") then  -- ← adiciona TextButton aqui
+            Tween(c, { TextTransparency = c:GetAttribute("TargetTT") or 0 }, "slow")
+        elseif c:IsA("ImageLabel") then
+            Tween(c, { ImageTransparency = c:GetAttribute("TargetIT") or 0 }, "slow")
+        elseif c:IsA("UIStroke") then
+            Tween(c, { Transparency = c:GetAttribute("TargetST") or 0.55 }, "slow")
+        end
+    end
+end
 
         local function ErrorFlash(frame, origName, origColor, label)
             Tween(frame, { BackgroundTransparency = 0, BackgroundColor3 = Theme.Red })
@@ -2934,7 +2934,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
 
     MakeLockable(InviterObj, row)
     
-    joinBtn.TextTransparency = 0
+    --joinBtn.TextTransparency = 0
     return InviterObj
 end
 
