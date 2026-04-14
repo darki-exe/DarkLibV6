@@ -2885,7 +2885,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
         end)
     end)
 
-    local interact = New("TextButton", {
+    --[[local interact = New("TextButton", {
         Size                   = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Text                   = "",
@@ -2902,7 +2902,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
     end)
     interact.MouseLeave:Connect(function()
         Tween(row, { BackgroundTransparency = 0.55 }, "fast")
-    end)
+    end)]]
 
     joinBtn.ZIndex = 8
 
