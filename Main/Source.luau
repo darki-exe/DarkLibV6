@@ -1950,17 +1950,67 @@ end
                 Parent = _lockOverlay2
             })
 
-            function DDObj:ToggleLock(locked, iconOrText, tooltipText)
+            function DDObj:ToggleLock(locked)
                 _ddLocked = locked
                 if locked then
                     if open then ClosePopup() end
+                    local existing = _lockOverlay2:FindFirstChildOfClass("ImageLabel")
+                    if existing then existing:Destroy() end
+                    local _lockIcon2 = New("ImageLabel", {
+                        Size = UDim2.fromOffset(20, 20),
+                        Position = UDim2.new(0.5, -12, 0.5, 0),
+                        AnchorPoint = Vector2.new(0.5, 0.5),
+                        BackgroundTransparency = 1,
+                        Image = "rbxassetid://10723434711",
+                        ImageColor3 = Theme.AccentGlow,
+                        ScaleType = Enum.ScaleType.Fit,
+                        ZIndex = 52,
+                        Parent = _lockOverlay2
+                    })
                     _lockOverlay2.Visible = true
-                    Tween(_lockOverlay2, { BackgroundTransparency = 0.5 })
+                    Tween(_lockOverlay2, { BackgroundTransparency = 0.25 })
                 else
-                    Tween(_lockOverlay2, { BackgroundTransparency = 1 })
-                    task.delay(0.35, function()
-                        _lockOverlay2.Visible = false
-                    end)
+                    local _lockIcon2 = _lockOverlay2:FindFirstChildOfClass("ImageLabel")
+                    if _lockIcon2 then
+                        task.spawn(function()
+                            local t1 = TS:Create(_lockIcon2, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                                Position = UDim2.new(0.5, -12, 0.5, -12),
+                                Size = UDim2.fromOffset(24, 24),
+                            })
+                            t1:Play()
+                            t1.Completed:Wait()
+
+                            local t2 = TS:Create(_lockIcon2, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {
+                                ImageTransparency = 1
+                            })
+                            t2:Play()
+                            t2.Completed:Wait()
+
+                            _lockIcon2.Image = "rbxassetid://10747366027"
+
+                            local t3 = TS:Create(_lockIcon2, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {
+                                ImageTransparency = 0
+                            })
+                            t3:Play()
+                            t3.Completed:Wait()
+
+                            TS:Create(_lockIcon2, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+                                Position = UDim2.new(0.5, -12, 0.5, 24),
+                                ImageTransparency = 1,
+                            }):Play()
+                            Tween(_lockOverlay2, { BackgroundTransparency = 1 }, "slow")
+
+                            task.delay(0.65, function()
+                                _lockOverlay2.Visible = false
+                                if _lockIcon2 then _lockIcon2:Destroy() end
+                            end)
+                        end)
+                    else
+                        Tween(_lockOverlay2, { BackgroundTransparency = 1 }, "slow")
+                        task.delay(0.6, function()
+                            _lockOverlay2.Visible = false
+                        end)
+                    end
                 end
             end
 
@@ -3514,6 +3564,159 @@ function DarkLib:Dialog(data)
             task.wait(0.05)
         end
     end
+end
+
+function DarkLib:CreateToggleButton(cfg, windowObj)
+    cfg = Merge({
+        IconID = "rbxassetid://0",
+        Radius = 28,
+    }, cfg)
+
+    local size = cfg.Radius * 2
+    local sg = MakeOverlayGui("DarkLibV6_ToggleBtn", 9800)
+
+    local btn = New("Frame", {
+        Name = "ToggleButton",
+        Size = UDim2.fromOffset(size, size),
+        Position = UDim2.fromOffset(24, 24),
+        BackgroundColor3 = Theme.BG2,
+        ZIndex = 1,
+        Parent = sg,
+    }, {
+        UICorner(cfg.Radius),
+        UIStroke(Theme.Accent, 2, 0),
+    })
+
+    New("ImageLabel", {
+        Size = UDim2.new(1, -12, 1, -12),
+        Position = UDim2.new(0, 6, 0, 6),
+        BackgroundTransparency = 1,
+        Image = cfg.IconID,
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 2,
+        Parent = btn,
+    })
+
+    local interact = New("TextButton", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        ZIndex = 3,
+        Parent = btn,
+    })
+
+    local dragging, dragStart, startPos = false, nil, nil
+
+    interact.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = btn.Position
+        end
+    end)
+
+    interact.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (
+            input.UserInputType == Enum.UserInputType.MouseMovement or
+            input.UserInputType == Enum.UserInputType.Touch
+        ) then
+            local delta = input.Position - dragStart
+            Tween(btn, {
+                Position = UDim2.fromOffset(
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Offset + delta.Y
+                )
+            }, "fast")
+        end
+    end)
+
+    local _visible = true
+    local _dragMoved = false
+
+    interact.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            _dragMoved = false
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging and (
+            input.UserInputType == Enum.UserInputType.MouseMovement or
+            input.UserInputType == Enum.UserInputType.Touch
+        ) then
+            _dragMoved = true
+        end
+    end)
+
+    interact.MouseButton1Click:Connect(function()
+        if _dragMoved then return end
+
+        local root = CoreGui
+        if gethui then root = gethui() end
+
+        for _, child in ipairs(root:GetChildren()) do
+            if child.Name:find("DarkLibV6_DDPopup") or child.Name:find("DarkLibV6_CPPopup") then
+                child:Destroy()
+            end
+        end
+
+        if windowObj then
+            _visible = not _visible
+            local win = windowObj._window
+
+            if _visible then
+                win.Visible = true
+                Tween(win, { BackgroundTransparency = 0 }, "med")
+                for _, c in ipairs(win:GetDescendants()) do
+                    if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
+                        Tween(c, { TextTransparency = 0 }, "med")
+                    elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
+                        Tween(c, { ImageTransparency = 0 }, "med")
+                    elseif c:IsA("UIStroke") then
+                        Tween(c, { Transparency = 0 }, "med")
+                    end
+                end
+                Tween(btn:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Accent }, "fast")
+            else
+                Tween(win, { BackgroundTransparency = 1 }, "med")
+                for _, c in ipairs(win:GetDescendants()) do
+                    if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
+                        Tween(c, { TextTransparency = 1 }, "med")
+                    elseif c:IsA("ImageLabel") or c:IsA("ImageButton") then
+                        Tween(c, { ImageTransparency = 1 }, "med")
+                    elseif c:IsA("UIStroke") then
+                        Tween(c, { Transparency = 1 }, "med")
+                    end
+                end
+                Tween(btn:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.AccentDim }, "fast")
+                task.delay(0.38, function()
+                    if not _visible then
+                        win.Visible = false
+                    end
+                end)
+            end
+
+            windowObj.Visible = _visible
+        end
+    end)
+
+    interact.MouseEnter:Connect(function()
+        Tween(btn, { BackgroundColor3 = Theme.BG3 }, "fast")
+    end)
+    interact.MouseLeave:Connect(function()
+        Tween(btn, { BackgroundColor3 = Theme.BG2 }, "fast")
+    end)
+
+    return btn
 end
 
 return DarkLib
