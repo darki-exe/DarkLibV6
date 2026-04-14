@@ -2974,16 +2974,18 @@ function TabObj:CreateColorPicker(cpCfg, flag)
 
 
         local keyPasteBtn = New("ImageButton", {
-    Size = UDim2.new(0, 32, 0, 24),
-    Position = UDim2.new(1, -36, 0.5, -12),
-    BackgroundColor3 = Theme.BG3,
-    Image = "rbxassetid://10709799288",
-    ImageColor3 = Theme.TextDim,
-    ImageTransparency = 1,
-    ScaleType = Enum.ScaleType.Fit,
-    ZIndex = 203,
-    Parent = keyInputBg
-}, { UICorner(5) })
+            Size = UDim2.new(0, 26, 0, 26),
+            Position = UDim2.new(1, -32, 0.5, -13),
+            BackgroundColor3 = Theme.BG3,
+            BackgroundTransparency = 0.3,
+            Image = "rbxassetid://10709799288",
+            ImageColor3 = Theme.TextDim,
+            ImageTransparency = 1,
+            ScaleType = Enum.ScaleType.Fit,
+            AutoButtonColor = false,
+            ZIndex = 203,
+            Parent = keyInputBg
+        }, { UICorner(5) })
 
 
         local keyBtnRow = New("Frame", {
@@ -3066,7 +3068,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
             task.delay(0.30, function()
                 Tween(keyInputBg, { BackgroundTransparency = 0 }, "slow")
                 Tween(keyBox, { TextTransparency = 0 }, "slow")
-                Tween(keyPasteBtn, { BackgroundTransparency = 0 }, "slow")
+                Tween(keyPasteBtn, { BackgroundTransparency = 0.3, ImageTransparency = 0 }, "slow")
             end)
             task.delay(0.36, function()
                 Tween(keySubmit, { TextTransparency = 0, BackgroundTransparency = 0 }, "slow")
@@ -3192,11 +3194,31 @@ function TabObj:CreateColorPicker(cpCfg, flag)
         end)
 
         keyPasteBtn.MouseButton1Click:Connect(function()
-            local ok, clip = pcall(getclipboard)
-            if ok and clip and clip ~= "" then
+            -- tenta todas as formas possíveis de pegar o clipboard
+            local clip = nil
+            if type(getclipboard) == "function" then
+                local ok, res = pcall(getclipboard)
+                if ok and res and res ~= "" then clip = res end
+            end
+            if not clip and type(cloneref) == "function" then
+                local ok, res = pcall(function()
+                    return cloneref(game:GetService("GuiService")):GetClipboard()
+                end)
+                if ok and res and res ~= "" then clip = res end
+            end
+
+            if clip and clip ~= "" then
                 keyBox.Text = clip
-                Tween(keyPasteBtn, { BackgroundColor3 = Theme.AccentDim }, "fast")
-                task.delay(0.4, function() Tween(keyPasteBtn, { BackgroundColor3 = Theme.BG3 }, "med") end)
+                Tween(keyPasteBtn, { BackgroundColor3 = Theme.AccentDim, ImageColor3 = Theme.AccentGlow }, "fast")
+                task.delay(0.5, function()
+                    Tween(keyPasteBtn, { BackgroundColor3 = Theme.BG3, ImageColor3 = Theme.TextDim }, "med")
+                end)
+            else
+                -- feedback de erro: pisca vermelho
+                Tween(keyPasteBtn, { ImageColor3 = Theme.Red }, "fast")
+                task.delay(0.5, function()
+                    Tween(keyPasteBtn, { ImageColor3 = Theme.TextDim }, "med")
+                end)
             end
         end)
 
@@ -3303,5 +3325,299 @@ function TabObj:CreateColorPicker(cpCfg, flag)
 
     return WindowObj
 end
+
+-- ─── Dialog ──────────────────────────────────────────────────────────────────
+
+--[[
+    DarkLib:Dialog(data)
+
+    data = {
+        Title       = "string",
+        Description = "string",
+        Buttons     = {
+            {
+                Text        = "string",
+                Color       = Color3,          -- fundo do botão
+                StrokeColor = Color3,          -- cor do stroke (opcional)
+                StrokeThick = number,          -- espessura do stroke (opcional, default 1)
+                Round       = number,          -- raio do corner (opcional, default 6)
+                Callback    = function(id) end -- chamado ao clicar; id = índice do botão (1-4)
+            },
+            ...  -- mínimo 1, máximo 4
+        },
+        Callback = function(buttonIndex) end   -- callback global opcional
+    }
+]]
+
+function DarkLib:Dialog(data)
+    assert(type(data) == "table", "Dialog: data deve ser uma tabela")
+    assert(type(data.Buttons) == "table" and #data.Buttons >= 1 and #data.Buttons <= 4,
+        "Dialog: Buttons deve ter entre 1 e 4 entradas")
+
+    data = Merge({
+        Title       = "Dialog",
+        Description = "",
+        Callback    = nil,
+    }, data)
+
+    -- ── overlay ScreenGui ──────────────────────────────────────────────────
+    local sg = MakeOverlayGui("DarkLibV6_Dialog", 10000)
+
+    -- fundo escurecido
+    local backdrop = New("Frame", {
+        Name = "Backdrop",
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 1,
+        ZIndex = 1,
+        Parent = sg,
+    })
+
+    -- card central
+    local CARD_W = 320
+    local card = New("Frame", {
+        Name = "Card",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, CARD_W, 0, 0),
+        BackgroundColor3 = Theme.BG2,
+        BackgroundTransparency = 1,
+        ClipsDescendants = false,
+        ZIndex = 2,
+        Parent = sg,
+    }, {
+        UICorner(10),
+        UIStroke(Theme.Border, 1, 0),
+        UIPadding(18, 20, 20, 20),
+    })
+
+    -- barra roxa na borda esquerda (igual ao indicador de tab ativa)
+    local accentBar = New("Frame", {
+        Name = "AccentBar",
+        Size = UDim2.new(0, 3, 1, -20),
+        Position = UDim2.new(0, 2, 0, 10),
+        BackgroundColor3 = Theme.Accent,
+        BackgroundTransparency = 1,
+        ZIndex = 5,
+        Parent = card,
+    }, { UICorner(3) })
+
+    -- título
+    local titleLbl = New("TextLabel", {
+        Name = "Title",
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Text = data.Title,
+        TextColor3 = Theme.Text,
+        TextTransparency = 1,
+        Font = Enum.Font.GothamBold,
+        TextSize = 15,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 3,
+        Parent = card,
+    })
+
+    -- separador
+    local sep = New("Frame", {
+        Name = "Sep",
+        Size = UDim2.new(1, 0, 0, 1),
+        Position = UDim2.new(0, 0, 0, 26),
+        BackgroundColor3 = Theme.Border,
+        BackgroundTransparency = 0.5,
+        ZIndex = 3,
+        Parent = card,
+    })
+
+    -- descrição
+    local descLbl = New("TextLabel", {
+        Name = "Desc",
+        Size = UDim2.new(1, 0, 0, 0),
+        Position = UDim2.new(0, 0, 0, 34),
+        BackgroundTransparency = 1,
+        Text = data.Description,
+        TextColor3 = Theme.TextDim,
+        TextTransparency = 1,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        ZIndex = 3,
+        Parent = card,
+    })
+
+    -- medir altura da descrição
+    task.wait()
+    descLbl.Size = UDim2.new(1, 0, 0, math.huge)
+    local descH = descLbl.TextBounds.Y
+    if descH < 1 then descH = 0 end
+    descLbl.Size = UDim2.new(1, 0, 0, descH)
+
+    -- ── layout de botões ───────────────────────────────────────────────────
+    --
+    --  1 botão  → 1 linha,  largura 90%,  centralizado no X
+    --  2 botões → 1 linha,  cada um ~45%, lado a lado
+    --  3 botões → linha 1: botões 1 e 2 lado a lado (~45% cada)
+    --             linha 2: botão 3, largura 90%, na sua posição (não centraliza Y)
+    --  4 botões → linha 1: botões 1 e 2 lado a lado
+    --             linha 2: botões 3 e 4 lado a lado
+    --
+    local BTN_H   = 34
+    local BTN_GAP = 8   -- gap entre botões na mesma linha e entre linhas
+    local numBtns = #data.Buttons
+    local btnsTop = 34 + descH + (descH > 0 and 14 or 0)
+
+    -- quantas linhas de botões existem
+    local numRows = (numBtns <= 2) and 1 or 2
+    local totalBtnsH = numRows * BTN_H + (numRows - 1) * BTN_GAP
+
+    local btnContainer = New("Frame", {
+        Name = "Buttons",
+        Size = UDim2.new(1, 0, 0, totalBtnsH),
+        Position = UDim2.new(0, 0, 0, btnsTop),
+        BackgroundTransparency = 1,
+        ZIndex = 3,
+        Parent = card,
+    })
+
+    local CARD_H = btnsTop + totalBtnsH + 18
+
+    -- ── função de fechar (declarada antes de _makeBtn para ser upvalue) ────
+    local _closed = false
+    local _closeDialog
+    _closeDialog = function(btnIndex)
+        if _closed then return end
+        _closed = true
+
+        Tween(backdrop, { BackgroundTransparency = 1 }, "med")
+        Tween(card, { BackgroundTransparency = 1 }, "med")
+        for _, d in ipairs(card:GetDescendants()) do
+            if d:IsA("TextLabel") or d:IsA("TextButton") then
+                Tween(d, { TextTransparency = 1, BackgroundTransparency = 1 }, "med")
+            elseif d:IsA("UIStroke") then
+                Tween(d, { Transparency = 1 }, "med")
+            elseif d:IsA("Frame") then
+                Tween(d, { BackgroundTransparency = 1 }, "med")
+            end
+        end
+        Tween(card, { Size = UDim2.new(0, CARD_W, 0, CARD_H * 0.85) }, "med")
+        task.delay(0.38, function() sg:Destroy() end)
+
+        if btnIndex then
+            local btnCfg = data.Buttons[btnIndex]
+            if btnCfg and type(btnCfg.Callback) == "function" then
+                SafeCall(btnCfg.Callback, btnIndex)
+            end
+            if type(data.Callback) == "function" then
+                SafeCall(data.Callback, btnIndex)
+            end
+        end
+    end
+
+    -- ── helper: cria um botão com posição/tamanho em escala ────────────────
+    local function _makeBtn(i, btnData, posX, posY, sizeX)
+        local bColor = btnData.Color       or Theme.Accent
+        local sColor = btnData.StrokeColor or Theme.Border
+        local sThick = btnData.StrokeThick or 1
+        local bRound = btnData.Round       or 6
+        local bText  = btnData.Text        or ("Button " .. i)
+
+        local btn = New("TextButton", {
+            Name = "Btn_" .. i,
+            -- posição e tamanho em escala relativa ao container
+            Position = UDim2.new(posX, 0, posY, 0),
+            Size     = UDim2.new(sizeX, 0, 0, BTN_H),
+            BackgroundColor3 = bColor,
+            BackgroundTransparency = 0.15,
+            Text = bText,
+            TextColor3 = Theme.Text,
+            TextTransparency = 1,
+            Font = Enum.Font.GothamBold,
+            TextSize = 13,
+            AutoButtonColor = false,
+            ZIndex = 4,
+            Parent = btnContainer,
+        }, {
+            UICorner(bRound),
+            UIStroke(sColor, sThick, 0.3),
+        })
+
+        btn.MouseEnter:Connect(function()
+            Tween(btn, { BackgroundTransparency = 0, TextTransparency = 0 }, "fast")
+        end)
+        btn.MouseLeave:Connect(function()
+            Tween(btn, { BackgroundTransparency = 0.15, TextTransparency = 0 }, "fast")
+        end)
+
+        btn.MouseButton1Click:Connect(function()
+            Tween(btn, { BackgroundTransparency = 0.35 }, "fast")
+            task.delay(0.12, function() _closeDialog(i) end)
+        end)
+
+        return btn
+    end
+
+    -- rowY: posição Y em escala dentro do container para cada linha
+    -- linha 1 sempre começa em 0; linha 2 começa após BTN_H + BTN_GAP
+    local row1Y = 0
+    local row2Y = (BTN_H + BTN_GAP) / totalBtnsH  -- escala relativa
+
+    -- gap entre os dois botões na mesma linha (em escala X)
+    local PAIR_GAP_SCALE = BTN_GAP / (CARD_W - 40)  -- 40 = padding left+right do card
+    local PAIR_W = (1 - PAIR_GAP_SCALE) / 2          -- largura de cada btn no par
+
+    if numBtns == 1 then
+        -- 1 botão: ocupa 100% da largura
+        _makeBtn(1, data.Buttons[1], 0, 0, 1)
+
+    elseif numBtns == 2 then
+        -- 2 botões: lado a lado, cada um ~50% menos o gap
+        _makeBtn(1, data.Buttons[1], 0,                        0, PAIR_W)
+        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE,  0, PAIR_W)
+
+    elseif numBtns == 3 then
+        -- linha 1: botões 1 e 2 lado a lado
+        _makeBtn(1, data.Buttons[1], 0,                        0,     PAIR_W)
+        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE,  0,     PAIR_W)
+        -- linha 2: botão 3 centralizado (mesma largura que os de cima, centrado no X)
+        local centerX = (1 - PAIR_W) / 2
+        _makeBtn(3, data.Buttons[3], centerX,                  row2Y, PAIR_W)
+
+    elseif numBtns == 4 then
+        -- linha 1: botões 1 e 2
+        _makeBtn(1, data.Buttons[1], 0,                        0,     PAIR_W)
+        _makeBtn(2, data.Buttons[2], PAIR_W + PAIR_GAP_SCALE,  0,     PAIR_W)
+        -- linha 2: botões 3 e 4
+        _makeBtn(3, data.Buttons[3], 0,                        row2Y, PAIR_W)
+        _makeBtn(4, data.Buttons[4], PAIR_W + PAIR_GAP_SCALE,  row2Y, PAIR_W)
+    end
+
+    -- ── animar entrada ─────────────────────────────────────────────────────
+    card.Size = UDim2.new(0, CARD_W, 0, CARD_H * 0.88)
+
+    Tween(backdrop, { BackgroundTransparency = 0.55 }, "med")
+    Tween(card, {
+        Size = UDim2.new(0, CARD_W, 0, CARD_H),
+        BackgroundTransparency = 0.04,
+    }, "slow")
+
+    task.wait(0.12)
+    Tween(titleLbl, { TextTransparency = 0 })
+    Tween(accentBar, { BackgroundTransparency = 0 }, "slow")
+    if descH > 0 then
+        task.wait(0.06)
+        Tween(descLbl, { TextTransparency = 0.15 })
+    end
+    task.wait(0.08)
+    for _, btn in ipairs(btnContainer:GetChildren()) do
+        if btn:IsA("TextButton") then
+            Tween(btn, { TextTransparency = 0, BackgroundTransparency = 0.15 })
+            task.wait(0.05)
+        end
+    end
+end
+
+-- ─────────────────────────────────────────────────────────────────────────────
 
 return DarkLib
