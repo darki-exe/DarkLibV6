@@ -516,8 +516,8 @@ function DarkLib:CreateWindow(cfg)
         return btn, interact
     end
 
-    local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(190, 60, 90),  nil, "✕")
-    local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, "─")
+    local _closeBtnFrame, closeBtn = MakeCtrlBtn(Color3.fromRGB(190, 60, 90),  nil, "X")
+    local _minBtnFrame,   minBtn   = MakeCtrlBtn(Color3.fromRGB(120, 90, 220), nil, "-")
 
     
     local NavWidth = 140
@@ -3399,7 +3399,7 @@ end
             New("TextLabel", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
-                Text = _minimized and "+" or "─",
+                Text = _minimized and "+" or "-",
                 TextColor3 = minColor,
                 TextTransparency = 0.1,
                 Font = Enum.Font.GothamBold,
