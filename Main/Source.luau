@@ -150,39 +150,48 @@ local function MakeOverlayGui(name, displayOrder)
 end
 
 local function MakeDraggable(handle, target)
-    local dragging, dragStart, startPos = false, nil, nil
+    local dragging  = false
+    local dragInput = nil
+    local dragStart = nil
+    local startPos  = nil
 
     handle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1
             or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
+            dragging  = true
+            dragInput = input
             dragStart = input.Position
-            startPos = target.Position
+            startPos  = target.Position
+
+            -- input.Changed dispara quando o estado muda para End,
+            -- mesmo que o dedo/cursor saia da área do handle
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging  = false
+                    dragInput = nil
+                end
+            end)
         end
     end)
 
-    handle.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
+    -- fallback: UIS.InputEnded garante que o drag pare em qualquer caso
+    UIS.InputEnded:Connect(function(input)
+        if input == dragInput then
+            dragging  = false
+            dragInput = nil
         end
     end)
 
     UIS.InputChanged:Connect(function(input)
-        if dragging and (
-            input.UserInputType == Enum.UserInputType.MouseMovement or
-            input.UserInputType == Enum.UserInputType.Touch
-        ) then
-            local delta = input.Position - dragStart
-            Tween(target, {
-                Position = UDim2.new(
-                    startPos.X.Scale,
-                    startPos.X.Offset + delta.X,
-                    startPos.Y.Scale,
-                    startPos.Y.Offset + delta.Y
-                )
-            }, "fast")
-        end
+        if not dragging or input ~= dragInput then return end
+        local delta = input.Position - dragStart
+        -- Posição direta (sem Tween) = responsivo e sem lag no mobile
+        target.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end)
 end
 
@@ -797,82 +806,6 @@ function DarkLib:CreateWindow(cfg)
             end)
         end)
     end
-
-    function WindowObj:SetBackgroundTransparency(alpha)
-        Tween(Window, { BackgroundTransparency = math.clamp(alpha, 0, 1) }, "fast")
-    end
-
-    local _acrylicEnabled = false
-local _acrylicViewport
-local _acrylicCamera
-local _acrylicConnection
-
-function WindowObj:SetAcrylic(enabled)
-    if enabled == _acrylicEnabled then return end
-    _acrylicEnabled = enabled
-
-    if enabled then
-        _acrylicCamera = Instance.new("Camera")
-        _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
-
-        _acrylicViewport = New("ViewportFrame", {
-            Size = UDim2.new(1, 0, 1, 0),
-            Position = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1,
-            ImageTransparency = 0.3,
-            CurrentCamera = _acrylicCamera,
-            ZIndex = 0,
-            Parent = Window
-        }, { UICorner(10) })
-
-        local function safeClone(obj)
-            local ok, clone = pcall(function()
-                return obj:Clone()
-            end)
-
-            if ok and clone then
-                return clone
-            end
-            return nil
-        end
-
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") or obj:IsA("MeshPart") or obj:IsA("UnionOperation") then
-                local clone = safeClone(obj)
-                if clone then
-                    clone.Anchored = true
-                    clone.CanCollide = false
-                    clone.Parent = _acrylicViewport
-                end
-            end
-        end
-
-        _acrylicConnection = RS.RenderStepped:Connect(function()
-            if not _acrylicCamera or not workspace.CurrentCamera then return end
-
-            _acrylicCamera.CFrame = workspace.CurrentCamera.CFrame
-            _acrylicCamera.FieldOfView = workspace.CurrentCamera.FieldOfView
-        end)
-
-        _acrylicCamera.Parent = _acrylicViewport
-
-        Tween(Window, { BackgroundTransparency = 0.55 }, "med")
-    else
-        if _acrylicConnection then
-            _acrylicConnection:Disconnect()
-            _acrylicConnection = nil
-        end
-
-        if _acrylicViewport then
-            _acrylicViewport:Destroy()
-            _acrylicViewport = nil
-        end
-
-        _acrylicCamera = nil
-
-        Tween(Window, { BackgroundTransparency = 0 }, "med")
-    end
-end
 
     function WindowObj:CreateTab(tabCfg)
         tabCfg = Merge({
@@ -3622,56 +3555,51 @@ function DarkLib:CreateToggleButton(cfg, windowObj)
         Parent = btn,
     })
 
-    local dragging, dragStart, startPos = false, nil, nil
-
-    interact.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = btn.Position
-        end
-    end)
-
-    interact.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    UIS.InputChanged:Connect(function(input)
-        if dragging and (
-            input.UserInputType == Enum.UserInputType.MouseMovement or
-            input.UserInputType == Enum.UserInputType.Touch
-        ) then
-            local delta = input.Position - dragStart
-            Tween(btn, {
-                Position = UDim2.fromOffset(
-                    startPos.X.Offset + delta.X,
-                    startPos.Y.Offset + delta.Y
-                )
-            }, "fast")
-        end
-    end)
-
-    local _visible = true
+    local dragging   = false
+    local dragInput  = nil
+    local dragStart  = nil
+    local startPos   = nil
+    local _visible   = true
     local _dragMoved = false
 
     interact.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1
             or input.UserInputType == Enum.UserInputType.Touch then
+            dragging   = true
             _dragMoved = false
+            dragInput  = input
+            dragStart  = input.Position
+            startPos   = btn.Position
+
+            -- Detecta fim do drag mesmo que o dedo saia da área do botão
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging  = false
+                    dragInput = nil
+                end
+            end)
+        end
+    end)
+
+    -- fallback para garantir que o drag sempre pare
+    UIS.InputEnded:Connect(function(input)
+        if input == dragInput then
+            dragging  = false
+            dragInput = nil
         end
     end)
 
     UIS.InputChanged:Connect(function(input)
-        if dragging and (
-            input.UserInputType == Enum.UserInputType.MouseMovement or
-            input.UserInputType == Enum.UserInputType.Touch
-        ) then
+        if not dragging or input ~= dragInput then return end
+        local delta = input.Position - dragStart
+        -- Threshold de 4px para diferenciar tap de drag no mobile
+        if math.abs(delta.X) > 4 or math.abs(delta.Y) > 4 then
             _dragMoved = true
         end
+        btn.Position = UDim2.fromOffset(
+            startPos.X.Offset + delta.X,
+            startPos.Y.Offset + delta.Y
+        )
     end)
 
     interact.MouseButton1Click:Connect(function()
