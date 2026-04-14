@@ -2933,6 +2933,8 @@ function TabObj:CreateColorPicker(cpCfg, flag)
     end
 
     MakeLockable(InviterObj, row)
+    
+    joinBtn.TextTransparency = 0
     return InviterObj
 end
 
