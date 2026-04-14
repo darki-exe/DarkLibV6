@@ -2817,7 +2817,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
         ScaleType              = Enum.ScaleType.Fit,
         ZIndex                 = 6,
         Parent                 = iconFrame,
-    })
+    }, UICorner(5))
 
     New("TextLabel", {
         Size                   = UDim2.new(1, -76, 0, 16),
@@ -2847,14 +2847,15 @@ function TabObj:CreateColorPicker(cpCfg, flag)
     })
 
     local joinBtn = New("TextButton", {
-        Size             = UDim2.fromOffset(58, 22),
-        Position         = UDim2.new(1, -70, 1, -30),
-        BackgroundColor3 = Theme.Green,
+        Size             = UDim2.fromOffset(150, 30),
+        Position         = UDim2.new(1, -155, 1, -35),
+        BackgroundColor3 = Color3.fromRGB(80, 200, 75),
         Text             = "Join",
-        TextColor3       = Color3.fromRGB(15, 15, 20),
+        TextColor3       = Color3.fromRGB(255, 255, 255),
         Font             = Enum.Font.GothamBold,
         TextSize         = 12,
         AutoButtonColor  = false,
+        TextTransparency = 0,
         ZIndex           = 6,
         Parent           = row,
     }, { UICorner(5) })
@@ -2879,7 +2880,7 @@ function TabObj:CreateColorPicker(cpCfg, flag)
         task.delay(3, function()
             if not joinBtn or not joinBtn.Parent then return end
             _copied = false
-            Tween(joinBtn, { BackgroundColor3 = Theme.Green }, "fast")
+            Tween(joinBtn, { BackgroundColor3 = Color3.fromRGB(80, 200, 75) }, "fast")
             joinBtn.Text = "Join"
         end)
     end)
