@@ -846,7 +846,7 @@ function DarkLib:CreateWindow(cfg)
             Position = UDim2.new(0, 10, 0.5, -7),
             BackgroundTransparency = 1,
             Image = tabCfg.IconID,
-            ImageColor3 = Theme.TextMuted,
+            ImageColor3 = Color3.new(1, 1, 1),
             ScaleType = Enum.ScaleType.Fit,
             ZIndex = 5,
             Parent = NavBtn,
@@ -901,7 +901,7 @@ function DarkLib:CreateWindow(cfg)
                 Tween(t._bar, { BackgroundTransparency = 1 })
                 Tween(t._label, { TextColor3 = Theme.TextMuted })
                 if t._icon then
-                    Tween(t._icon, { ImageColor3 = Theme.TextMuted })
+                    Tween(t._icon, { ImageColor3 = Color3.new(1, 1, 1) })
                 end
             end
 
@@ -927,6 +927,9 @@ function DarkLib:CreateWindow(cfg)
             if WindowObj._currentTab ~= tabCfg.Name then
                 Tween(NavBtn, { BackgroundTransparency = 1 })
                 Tween(btnLabel, { TextColor3 = Theme.TextMuted })
+                if iconLabel then
+                    Tween(iconLabel, { ImageColor3 = Color3.new(1, 1, 1) })
+                end
             end
         end)
 
