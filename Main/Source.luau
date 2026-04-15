@@ -845,7 +845,7 @@ function DarkLib:CreateWindow(cfg)
             Size = UDim2.new(0, 14, 0, 14),
             Position = UDim2.new(0, 10, 0.5, -7),
             BackgroundTransparency = 1,
-            Image = tabCfg.IconID,
+            Image = "rbxassetid://" .. tabCfg.IconID,
             ImageColor3 = Color3.new(1, 1, 1),
             ScaleType = Enum.ScaleType.Fit,
             ZIndex = 5,
