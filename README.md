@@ -6,7 +6,7 @@ DarkLib V6 is a modern UI framework for Roblox executors, focused on consistency
 
 ## Preview
 
-![DarkLib Preview](https://cdn.discordapp.com/attachments/1294749078265135115/1493609479818707074/82_Sem_Titulo_20260414105027.png?ex=69df97b9&is=69de4639&hm=80edaaaf1604fa6c4127cfbebd940b00d30b2192a57e119af6347adcf0d38e71&)
+![DarkLib Preview](https://cdn.discordapp.com/attachments/1294749078265135115/1493772482983891026/IMG_20260414_213820.png?ex=69e02f88&is=69dede08&hm=53d1b0fe6e96344ea8b25900549af8f66d753994caee13157b021513bb05c6eb&)
 
 ---
 
