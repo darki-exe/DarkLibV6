@@ -3081,6 +3081,7 @@ end
             ImageTransparency = 1,
             ScaleType = Enum.ScaleType.Fit,
             AutoButtonColor = false,
+            Visible = false, -- i just don't like it
             ZIndex = 203,
             Parent = keyInputBg
         }, { UICorner(5) })
