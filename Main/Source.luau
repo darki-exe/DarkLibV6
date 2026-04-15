@@ -1808,6 +1808,11 @@ end
             end
 
             local function PositionAndOpenPopup()
+             if not ddGui or not ddGui.Parent then
+               ddGui = MakeOverlayGui("DarkLibV6_DDPopup_" .. ddCfg.Name, 9500)
+               popupFrame.Parent = ddGui
+             end
+
                 local rowAbs = row.AbsolutePosition
                 local rowSz  = row.AbsoluteSize
                 local vp     = workspace.CurrentCamera.ViewportSize
