@@ -29,12 +29,12 @@ local toggleBtn = DarkLib:CreateToggleButton({
     Radius = 28,
 }, Window)
 
-local Tab1 = Window:CreateTab({ Name = "Buttons", Icon = "10747384394" })
+local Tab1 = Window:CreateTab({ Name = "Buttons", IconID = "10747384394" })
 
 Tab1:CreateDiscordInviter({
     Name   = "my server",
     Link   = "https://discord.gg/serverlink",
-    IconID = "0",
+    IconID = "10734897102",
 })
 
 Tab1:CreateDivider({ Text = "Basic Buttons" })
@@ -58,7 +58,7 @@ Tab1:CreateDivider({ Text = "Toggles" })
 
 local togSimple = Tab1:CreateToggle({
     Name         = "Simple Toggle",
-    CurrentValue = false,
+    Default = false,
     Callback     = function(v)
         DarkLib:Notify({ Title = "Toggle", Content = "Simple toggle: " .. tostring(v), Type = v and "success" or "warn" })
     end,
@@ -67,7 +67,7 @@ local togSimple = Tab1:CreateToggle({
 local togDesc = Tab1:CreateToggle({
     Name         = "Toggle with Description",
     Description  = "Toggling this affects the described feature.",
-    CurrentValue = true,
+    Default = true,
     Callback     = function(v)
         DarkLib:Notify({ Title = "Toggle", Content = "Toggle w/ desc: " .. tostring(v), Type = v and "success" or "warn" })
     end,
@@ -137,7 +137,7 @@ local slSpeed = Tab2:CreateSlider({
     Description  = "Controls the character's walking speed.",
     Range        = { 0, 500 },
     Increment    = 5,
-    CurrentValue = 16,
+    Default = 16,
     Suffix       = " studs/s",
     Callback     = function(v)
         DarkLib:Notify({ Title = "Speed", Content = "Walk speed: " .. v, Type = "info", Duration = 1 })
@@ -148,7 +148,7 @@ local slJump = Tab2:CreateSlider({
     Name         = "Jump Power",
     Range        = { 0, 200 },
     Increment    = 1,
-    CurrentValue = 50,
+    Default = 50,
     Suffix       = "",
     Callback     = function(v)
         DarkLib:Notify({ Title = "Jump", Content = "Jump power: " .. v, Type = "info", Duration = 1 })
@@ -159,7 +159,7 @@ local slTrans = Tab2:CreateSlider({
     Name         = "Transparency",
     Range        = { 0, 1 },
     Increment    = 0.05,
-    CurrentValue = 0,
+    Default = 0,
     Suffix       = "",
     Callback     = function(v)
         print("Transparency:", v)
@@ -209,8 +209,8 @@ Tab3:CreateDivider({ Text = "Text Inputs" })
 local inpName = Tab3:CreateInput({
     Name            = "Player Name",
     Description     = "Fires callback on every keystroke.",
-    PlaceholderText = "Enter a player name...",
-    CurrentValue    = "",
+    Placeholder = "Enter a player name...",
+    Default    = "",
     Callback        = function(v)
         DarkLib:Notify({ Title = "Input", Content = 'Name: "' .. v .. '"', Type = "info", Duration = 1 })
     end,
@@ -219,9 +219,9 @@ local inpName = Tab3:CreateInput({
 local inpNum = Tab3:CreateInput({
     Name            = "Numeric Field",
     Description     = "Accepts numbers only, max 6 characters.",
-    PlaceholderText = "e.g. 123456",
+    Placeholder = "e.g. 123456",
     Numeric         = true,
-    MaxCharacters   = 6,
+    MaxChars   = 6,
     Callback        = function(v)
         DarkLib:Notify({ Title = "Numeric", Content = "Value: " .. v, Type = "success" })
     end,
@@ -230,9 +230,9 @@ local inpNum = Tab3:CreateInput({
 Tab3:CreateInput({
     Name             = "Enter-Only Input",
     Description      = "Callback fires only when Enter is pressed.",
-    PlaceholderText  = "Type and press Enter...",
+    Placeholder  = "Type and press Enter...",
     Enter            = true,
-    ClearOnFocusLost = true,
+    ClearOnLost = true,
     Callback         = function(v)
         DarkLib:Notify({ Title = "Confirmed", Content = "Input: " .. v, Type = "success" })
     end,
@@ -243,7 +243,7 @@ Tab3:CreateDivider({ Text = "Input Controls" })
 Tab3:CreateButton({
     Name     = "Set Player Name to 'darki'",
     Callback = function()
-        inpName:Set({ CurrentValue = "darki" })
+        inpName:Set({ Default = "darki" })
         DarkLib:Notify({ Title = "Input Set", Content = "Name field set to 'darki'.", Type = "info" })
     end,
 })
@@ -251,7 +251,7 @@ Tab3:CreateButton({
 Tab3:CreateButton({
     Name     = "Clear Numeric Field",
     Callback = function()
-        inpNum:Set({ CurrentValue = "" })
+        inpNum:Set({ Default = "" })
         DarkLib:Notify({ Title = "Input Cleared", Content = "Numeric field cleared.", Type = "warn" })
     end,
 })
@@ -280,7 +280,7 @@ local ddMode = Tab4:CreateDropdown({
     Name          = "Game Mode",
     Description   = "Select the active game mode.",
     Options       = { "Normal", "Silent", "Aggressive", "Passive", "Debug" },
-    CurrentOption = "Normal",
+    Default = "Normal",
     Callback      = function(v)
         DarkLib:Notify({ Title = "Dropdown", Content = "Mode: " .. tostring(v), Type = "info" })
     end,
@@ -292,8 +292,8 @@ local ddFeatures = Tab4:CreateDropdown({
     Name            = "Active Features",
     Description     = "Select one or more features to enable.",
     Options         = { "Fly", "Speed", "NoClip", "InfJump", "ESP", "Aimbot" },
-    CurrentOption   = { "Fly", "Speed" },
-    MultipleOptions = true,
+    Default   = { "Fly", "Speed" },
+    Multi = true,
     Callback        = function(v)
         DarkLib:Notify({ Title = "Features", Content = "Active: " .. table.concat(v, ", "), Type = "info" })
     end,
@@ -304,7 +304,7 @@ Tab4:CreateDivider({ Text = "Dropdown Controls" })
 Tab4:CreateButton({
     Name     = "Reset Mode to Normal",
     Callback = function()
-        ddMode:Set({ CurrentOption = "Normal" })
+        ddMode:Set({ Default = "Normal" })
         DarkLib:Notify({ Title = "Reset", Content = "Mode reset to Normal.", Type = "warn" })
     end,
 })
@@ -312,7 +312,7 @@ Tab4:CreateButton({
 Tab4:CreateButton({
     Name     = "Reset Features to Fly Only",
     Callback = function()
-        ddFeatures:Set({ CurrentOption = { "Fly" } })
+        ddFeatures:Set({ Default = { "Fly" } })
         DarkLib:Notify({ Title = "Reset", Content = "Features reset to Fly only.", Type = "warn" })
     end,
 })
@@ -348,8 +348,8 @@ Tab5:CreateDivider({ Text = "Press Binds" })
 local bindFly = Tab5:CreateBind({
     Name           = "Toggle Fly",
     Description    = "Press the bound key to toggle fly.",
-    CurrentBind    = "F",
-    HoldToInteract = false,
+    Default    = "F",
+    Hold = false,
     Callback       = function()
         DarkLib:Notify({ Title = "Fly", Content = "Fly toggled!", Type = "success" })
     end,
@@ -357,8 +357,8 @@ local bindFly = Tab5:CreateBind({
 
 local bindNoclip = Tab5:CreateBind({
     Name           = "Toggle NoClip",
-    CurrentBind    = "N",
-    HoldToInteract = false,
+    Default    = "N",
+    Hold = false,
     Callback       = function()
         DarkLib:Notify({ Title = "NoClip", Content = "NoClip toggled!", Type = "success" })
     end,
@@ -369,8 +369,8 @@ Tab5:CreateDivider({ Text = "Hold Binds" })
 Tab5:CreateBind({
     Name           = "Hold to Sprint",
     Description    = "Hold the key to activate sprint.",
-    CurrentBind    = "LeftShift",
-    HoldToInteract = true,
+    Default    = "LeftShift",
+    Hold = true,
     Callback       = function(holding)
         if holding then
             DarkLib:Notify({ Title = "Sprint", Content = "Sprinting ON", Type = "success", Duration = 1 })
@@ -383,8 +383,8 @@ Tab5:CreateBind({
 Tab5:CreateBind({
     Name           = "Hold to Aim",
     Description    = "Hold the key to enable aim assist.",
-    CurrentBind    = "Q",
-    HoldToInteract = true,
+    Default    = "Q",
+    Hold = true,
     Callback       = function(holding)
         DarkLib:Notify({ Title = "Aim Assist", Content = holding and "Active" or "Inactive", Type = holding and "success" or "warn", Duration = 1 })
     end,
@@ -395,7 +395,7 @@ Tab5:CreateDivider({ Text = "Keybind Controls" })
 Tab5:CreateButton({
     Name     = "Reset Fly Bind to F",
     Callback = function()
-        bindFly:Set({ CurrentBind = "F" })
+        bindFly:Set({ Default = "F" })
         DarkLib:Notify({ Title = "Reset", Content = "Fly bind reset to F.", Type = "info" })
     end,
 })
@@ -749,12 +749,12 @@ Tab9:CreateButton({
     Callback = function()
         for k, obj in pairs(DarkLib.Options) do
             local val
-            if obj.CurrentValue ~= nil then
-                val = tostring(obj.CurrentValue)
-            elseif obj.CurrentOption ~= nil then
-                val = type(obj.CurrentOption) == "table" and table.concat(obj.CurrentOption, ", ") or tostring(obj.CurrentOption)
-            elseif obj.CurrentBind ~= nil then
-                val = obj.CurrentBind
+            if obj.Default ~= nil then
+                val = tostring(obj.Default)
+            elseif obj.Default ~= nil then
+                val = type(obj.Default) == "table" and table.concat(obj.Default, ", ") or tostring(obj.Default)
+            elseif obj.Default ~= nil then
+                val = obj.Default
             elseif obj.Color ~= nil then
                 val = tostring(obj.Color)
             end
@@ -771,7 +771,7 @@ Tab9:CreateButton({
     Callback = function()
         local obj = DarkLib.Options["ToggleSimple"]
         if obj then
-            local new = not obj.CurrentValue
+            local new = not obj.Default
             obj:UpdateState(new)
             DarkLib:Notify({ Title = "Flag", Content = "ToggleSimple -> " .. tostring(new), Type = "info" })
         end
@@ -794,7 +794,7 @@ Tab9:CreateButton({
     Callback = function()
         local obj = DarkLib.Options["DropdownMode"]
         if obj then
-            obj:Set({ CurrentOption = "Debug" })
+            obj:Set({ Default = "Debug" })
             DarkLib:Notify({ Title = "Flag", Content = "DropdownMode set to Debug.", Type = "info" })
         end
     end,
@@ -805,7 +805,7 @@ Tab9:CreateButton({
     Callback = function()
         local obj = DarkLib.Options["BindFly"]
         if obj then
-            obj:Set({ CurrentBind = "F" })
+            obj:Set({ Default = "F" })
             DarkLib:Notify({ Title = "Flag", Content = "BindFly reset to F.", Type = "info" })
         end
     end,
@@ -836,5 +836,5 @@ Tab9:CreateDivider({ Text = "Reference" })
 
 Tab9:CreateParagraph({
     Title = "Component Methods",
-    Text  = "Toggle: :UpdateState(bool), :ToggleLock(bool), :IsLocked(), :Destroy()\nSlider: :UpdateValue(number), :ToggleLock(bool), :IsLocked(), :Destroy()\nDropdown: :Set({CurrentOption}), :ToggleLock(bool), :IsLocked(), :Destroy()\nInput: :Set({CurrentValue}), :ToggleLock(bool), :IsLocked(), :Destroy()\nKeybind: :Set({CurrentBind}), :ToggleLock(bool), :IsLocked(), :Destroy()\nColorPicker: :Set({Color}), :ToggleLock(bool), :IsLocked(), :Destroy()\nLabel: :Set(string), :Destroy()\nButton: :Destroy()",
+    Text  = "Toggle: :UpdateState(bool), :ToggleLock(bool), :IsLocked(), :Destroy()\nSlider: :UpdateValue(number), :ToggleLock(bool), :IsLocked(), :Destroy()\nDropdown: :Set({Default}), :ToggleLock(bool), :IsLocked(), :Destroy()\nInput: :Set({Default}), :ToggleLock(bool), :IsLocked(), :Destroy()\nKeybind: :Set({Default}), :ToggleLock(bool), :IsLocked(), :Destroy()\nColorPicker: :Set({Color}), :ToggleLock(bool), :IsLocked(), :Destroy()\nLabel: :Set(string), :Destroy()\nButton: :Destroy()",
 })
