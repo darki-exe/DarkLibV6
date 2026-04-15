@@ -811,8 +811,8 @@ function DarkLib:CreateWindow(cfg)
 
     function WindowObj:CreateTab(tabCfg)
         tabCfg = Merge({
-            Name = "Tab",
-            Icon = nil,
+            Name   = "Tab",
+            IconID = nil,
         }, tabCfg)
 
         local isFirst = #WindowObj._tabs == 0
@@ -840,9 +840,23 @@ function DarkLib:CreateWindow(cfg)
             Parent = NavBtn
         }, { UICorner(2) })
 
+        local iconLabel = tabCfg.IconID and New("ImageLabel", {
+            Name = "TabIcon",
+            Size = UDim2.new(0, 14, 0, 14),
+            Position = UDim2.new(0, 10, 0.5, -7),
+            BackgroundTransparency = 1,
+            Image = tabCfg.IconID,
+            ImageColor3 = Theme.TextMuted,
+            ScaleType = Enum.ScaleType.Fit,
+            ZIndex = 5,
+            Parent = NavBtn,
+        }) or nil
+
+        local iconOffset = tabCfg.IconID and 28 or 10
+
         local btnLabel = New("TextLabel", {
-            Size = UDim2.new(1, -12, 1, 0),
-            Position = UDim2.new(0, 10, 0, 0),
+            Size = UDim2.new(1, -(iconOffset + 4), 1, 0),
+            Position = UDim2.new(0, iconOffset, 0, 0),
             BackgroundTransparency = 1,
             Text = tabCfg.Name,
             TextColor3 = Theme.TextMuted,
@@ -886,6 +900,9 @@ function DarkLib:CreateWindow(cfg)
                 Tween(t._navbtn, { BackgroundTransparency = 1 })
                 Tween(t._bar, { BackgroundTransparency = 1 })
                 Tween(t._label, { TextColor3 = Theme.TextMuted })
+                if t._icon then
+                    Tween(t._icon, { ImageColor3 = Theme.TextMuted })
+                end
             end
 
             WindowObj._currentTab = tabCfg.Name
@@ -893,6 +910,9 @@ function DarkLib:CreateWindow(cfg)
             Tween(NavBtn, { BackgroundTransparency = 0.8 })
             Tween(activeBar, { BackgroundTransparency = 0 })
             Tween(btnLabel, { TextColor3 = Theme.Text })
+            if iconLabel then
+                Tween(iconLabel, { ImageColor3 = Theme.AccentGlow })
+            end
         end
 
         btnInteract.MouseButton1Click:Connect(function() Activate(true) end)
@@ -915,6 +935,7 @@ function DarkLib:CreateWindow(cfg)
             _navbtn = NavBtn,
             _bar    = activeBar,
             _label  = btnLabel,
+            _icon   = iconLabel,
             Name    = tabCfg.Name,
         }
 
@@ -1163,7 +1184,7 @@ end
             togCfg = Merge({
                 Name = "Toggle",
                 Description = nil,
-                CurrentValue = false,
+                Default = false,
                 Callback = function() end,
             }, togCfg)
 
@@ -1228,7 +1249,7 @@ end
                 Parent = row
             })
 
-            local state = togCfg.CurrentValue
+            local state = togCfg.Default
 
             local function SetToggle(val, silent)
                 state = val
@@ -1266,17 +1287,17 @@ end
             SpawnFadeIn(row)
             AutoCanvas()
 
-            local TogObj = { CurrentValue = state, Settings = togCfg }
+            local TogObj = { Default = state, Settings = togCfg }
             function TogObj:Set(newCfg)
                 newCfg = Merge(togCfg, newCfg)
                 togCfg = newCfg
                 nameLabel.Text = togCfg.Name
-                SetToggle(togCfg.CurrentValue, true)
-                TogObj.CurrentValue = state
+                SetToggle(togCfg.Default, true)
+                TogObj.Default = state
             end
             function TogObj:UpdateState(v)
                 SetToggle(v, true)
-                TogObj.CurrentValue = state
+                TogObj.Default = state
             end
             function TogObj:Destroy()
                 row:Destroy(); AutoCanvas()
@@ -1294,7 +1315,7 @@ end
                 Name = "Slider",
                 Range = {0, 100},
                 Increment = 1,
-                CurrentValue = 50,
+                Default = 50,
                 Suffix = "",
                 Callback = function() end,
             }, slCfg)
@@ -1319,7 +1340,7 @@ end
                 Size = UDim2.new(0, 70, 0, 16),
                 Position = UDim2.new(1, -80, 0, 8),
                 BackgroundTransparency = 1,
-                Text = tostring(slCfg.CurrentValue) .. slCfg.Suffix,
+                Text = tostring(slCfg.Default) .. slCfg.Suffix,
                 TextColor3 = Theme.AccentGlow,
                 Font = Enum.Font.GothamBold,
                 TextSize = 12,
@@ -1367,7 +1388,7 @@ end
                 Parent = row
             })
 
-            local curVal = slCfg.CurrentValue
+            local curVal = slCfg.Default
             local dragging = false
 
             local function SetSlider(raw, silent)
@@ -1423,17 +1444,17 @@ end
             SpawnFadeIn(row)
             AutoCanvas()
 
-            local SlObj = { CurrentValue = curVal, Settings = slCfg }
+            local SlObj = { Default = curVal, Settings = slCfg }
             function SlObj:Set(newCfg)
                 newCfg = Merge(slCfg, newCfg)
                 slCfg = newCfg
                 nameLabel.Text = slCfg.Name
-                SetSlider(slCfg.CurrentValue, true)
-                SlObj.CurrentValue = curVal
+                SetSlider(slCfg.Default, true)
+                SlObj.Default = curVal
             end
             function SlObj:UpdateValue(v)
                 SetSlider(v, true)
-                SlObj.CurrentValue = curVal
+                SlObj.Default = curVal
             end
             function SlObj:Destroy()
                 row:Destroy(); AutoCanvas()
@@ -1450,12 +1471,12 @@ end
             inCfg = Merge({
                 Name = "Input",
                 Description = nil,
-                PlaceholderText = "Type here...",
-                CurrentValue = "",
+                Placeholder = "Type here...",
+                Default = "",
                 Numeric = false,
-                MaxCharacters = nil,
+                MaxChars = nil,
                 Enter = false,
-                ClearOnFocusLost = false,
+                ClearOnLost = false,
                 Callback = function() end,
             }, inCfg)
 
@@ -1506,8 +1527,8 @@ end
                 Size = UDim2.new(1, -12, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Text = inCfg.CurrentValue,
-                PlaceholderText = inCfg.PlaceholderText,
+                Text = inCfg.Default,
+                Placeholder = inCfg.Placeholder,
                 PlaceholderColor3 = Theme.TextMuted,
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.Gotham,
@@ -1525,14 +1546,14 @@ end
             box.FocusLost:Connect(function(enter)
                 Tween(inputBg:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border, Transparency = 0.3 })
                 if inCfg.Enter and not enter then
-                    if inCfg.ClearOnFocusLost then box.Text = "" end
+                    if inCfg.ClearOnLost then box.Text = "" end
                     return
                 end
                 local ok, err = SafeCall(inCfg.Callback, box.Text)
                 if not ok then
                     warn("[DarkLibV6] Input '" .. inCfg.Name .. "' error: " .. tostring(err))
                 end
-                if inCfg.ClearOnFocusLost then box.Text = "" end
+                if inCfg.ClearOnLost then box.Text = "" end
             end)
 
             if inCfg.Numeric then
@@ -1544,10 +1565,10 @@ end
                 end)
             end
 
-            if inCfg.MaxCharacters then
+            if inCfg.MaxChars then
                 box:GetPropertyChangedSignal("Text"):Connect(function()
-                    if #box.Text > inCfg.MaxCharacters then
-                        box.Text = box.Text:sub(1, inCfg.MaxCharacters)
+                    if #box.Text > inCfg.MaxChars then
+                        box.Text = box.Text:sub(1, inCfg.MaxChars)
                     end
                 end)
             end
@@ -1562,13 +1583,13 @@ end
             SpawnFadeIn(row)
             AutoCanvas()
 
-            local InObj = { CurrentValue = box.Text, Settings = inCfg }
+            local InObj = { Default = box.Text, Settings = inCfg }
             function InObj:Set(newCfg)
                 newCfg = Merge(inCfg, newCfg)
                 inCfg = newCfg
                 nameLabel.Text = inCfg.Name
-                box.Text = tostring(inCfg.CurrentValue)
-                InObj.CurrentValue = box.Text
+                box.Text = tostring(inCfg.Default)
+                InObj.Default = box.Text
             end
             function InObj:Destroy()
                 row:Destroy(); AutoCanvas()
@@ -1587,19 +1608,19 @@ end
                 Name = "Dropdown",
                 Description = nil,
                 Options = {"Option 1", "Option 2"},
-                CurrentOption = nil,
-                MultipleOptions = false,
+                Default = nil,
+                Multi = false,
                 Callback = function() end,
             }, ddCfg)
 
-            if type(ddCfg.CurrentOption) == "string" then
-                ddCfg.CurrentOption = {ddCfg.CurrentOption}
-            elseif ddCfg.CurrentOption == nil then
-                ddCfg.CurrentOption = {}
+            if type(ddCfg.Default) == "string" then
+                ddCfg.Default = {ddCfg.Default}
+            elseif ddCfg.Default == nil then
+                ddCfg.Default = {}
             end
 
             local selected = {}
-            for _, v in ipairs(ddCfg.CurrentOption) do
+            for _, v in ipairs(ddCfg.Default) do
                 table.insert(selected, tostring(v))
             end
 
@@ -1768,7 +1789,7 @@ end
 
                         if _ddLocked then return end
 
-                        if ddCfg.MultipleOptions then
+                        if ddCfg.Multi then
                             if TableContains(selected, opt) then
                                 TableRemoveValue(selected, opt)
                             else
@@ -1781,7 +1802,7 @@ end
 
                         preview.Text = #selected > 0 and table.concat(selected, ", ") or "None"
                         RebuildPopup()
-                        SafeCall(ddCfg.Callback, ddCfg.MultipleOptions and selected or selected[1])
+                        SafeCall(ddCfg.Callback, ddCfg.Multi and selected or selected[1])
                     end)
                 end
             end
@@ -1859,19 +1880,19 @@ end
             SpawnFadeIn(row)
             AutoCanvas()
 
-            local DDObj = { CurrentOption = selected, Settings = ddCfg }
+            local DDObj = { Default = selected, Settings = ddCfg }
 
             function DDObj:Set(newCfg)
                 newCfg = Merge(ddCfg, newCfg)
                 ddCfg = newCfg
                 nameLabel.Text = ddCfg.Name
-                if type(ddCfg.CurrentOption) == "table" then
-                    selected = ddCfg.CurrentOption
+                if type(ddCfg.Default) == "table" then
+                    selected = ddCfg.Default
                 else
-                    selected = {ddCfg.CurrentOption}
+                    selected = {ddCfg.Default}
                 end
                 preview.Text = #selected > 0 and table.concat(selected, ", ") or "None"
-                DDObj.CurrentOption = selected
+                DDObj.Default = selected
             end
 
             function DDObj:Destroy()
@@ -1980,8 +2001,8 @@ end
             bndCfg = Merge({
                 Name = "Keybind",
                 Description = nil,
-                CurrentBind = "None",
-                HoldToInteract = false,
+                Default = "None",
+                Hold = false,
                 Callback = function() end,
             }, bndCfg)
 
@@ -2031,7 +2052,7 @@ end
             local bindLabel = New("TextLabel", {
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
-                Text = bndCfg.CurrentBind,
+                Text = bndCfg.Default,
                 TextColor3 = Theme.AccentGlow,
                 Font = Enum.Font.GothamBold,
                 TextSize = 11,
@@ -2048,7 +2069,7 @@ end
             })
 
             local listening = false
-            local currentBind = bndCfg.CurrentBind
+            local currentBind = bndCfg.Default
             local held = false
 
             interact.MouseButton1Click:Connect(function()
@@ -2064,7 +2085,7 @@ end
                     if keyStr ~= "Unknown" and keyStr ~= "Return" then
                         currentBind = keyStr
                         bindLabel.Text = keyStr
-                        bndCfg.CurrentBind = keyStr
+                        bndCfg.Default = keyStr
                         listening = false
                         Tween(bindBox:FindFirstChildWhichIsA("UIStroke"), { Color = Theme.Border })
                     end
@@ -2074,7 +2095,7 @@ end
                 if gpe then return end
                 local keyStr = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
                 if keyStr == currentBind then
-                    if bndCfg.HoldToInteract then
+                    if bndCfg.Hold then
                         held = true
                         SafeCall(bndCfg.Callback, true)
                     else
@@ -2084,7 +2105,7 @@ end
             end)
 
             UIS.InputEnded:Connect(function(input)
-                if bndCfg.HoldToInteract and held then
+                if bndCfg.Hold and held then
                     local keyStr = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
                     if keyStr == currentBind then
                         held = false
@@ -2103,14 +2124,14 @@ end
             SpawnFadeIn(row)
             AutoCanvas()
 
-            local BndObj = { Settings = bndCfg, CurrentBind = currentBind }
+            local BndObj = { Settings = bndCfg, Default = currentBind }
             function BndObj:Set(newCfg)
                 newCfg = Merge(bndCfg, newCfg)
                 bndCfg = newCfg
-                currentBind = bndCfg.CurrentBind
+                currentBind = bndCfg.Default
                 nameLabel.Text = bndCfg.Name
                 bindLabel.Text = currentBind
-                BndObj.CurrentBind = currentBind
+                BndObj.Default = currentBind
             end
             function BndObj:Destroy()
                 row:Destroy(); AutoCanvas()
