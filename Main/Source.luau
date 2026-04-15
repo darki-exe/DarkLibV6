@@ -3793,11 +3793,11 @@ function DarkLib:CreateToggleButton(cfg, windowObj)
         local root = CoreGui
         if gethui then root = gethui() end
 
-        for _, child in ipairs(root:GetChildren()) do
+        --[[for _, child in ipairs(root:GetChildren()) do
             if child.Name:find("DarkLibV6_DDPopup") or child.Name:find("DarkLibV6_CPPopup") then
                 child:Destroy()
             end
-        end
+        end]]
 
         if windowObj then
             _visible = not _visible
