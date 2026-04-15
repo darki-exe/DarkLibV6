@@ -1531,7 +1531,7 @@ end
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
                 Text = inCfg.Default,
-                Placeholder = inCfg.Placeholder,
+                PlaceholderText = inCfg.Placeholder,
                 PlaceholderColor3 = Theme.TextMuted,
                 TextColor3 = Theme.Text,
                 Font = Enum.Font.Gotham,
