@@ -31,6 +31,12 @@ local toggleBtn = DarkLib:CreateToggleButton({
 
 local Tab1 = Window:CreateTab({ Name = "Buttons", Icon = "10747384394" })
 
+Tab1:CreateDiscordInviter({
+    Name   = "my server",
+    Link   = "https://discord.gg/serverlink",
+    IconID = "0",
+})
+
 Tab1:CreateDivider({ Text = "Basic Buttons" })
 
 Tab1:CreateButton({
