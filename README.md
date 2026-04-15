@@ -92,7 +92,13 @@ local toggleBtn = DarkLib:CreateToggleButton({
     Radius = 28,
 }, Window)
 
-local Tab1 = Window:CreateTab({ Name = "Buttons", Icon = "10747384394" })
+local Tab1 = Window:CreateTab({ Name = "Buttons", IconID = "10747384394" })
+
+Tab1:CreateDiscordInviter({
+    Name   = "my server",
+    Link   = "https://discord.gg/serverlink",
+    IconID = "10734897102",
+})
 
 Tab1:CreateDivider({ Text = "Basic Buttons" })
 
@@ -115,7 +121,7 @@ Tab1:CreateDivider({ Text = "Toggles" })
 
 local togSimple = Tab1:CreateToggle({
     Name         = "Simple Toggle",
-    CurrentValue = false,
+    Default = false,
     Callback     = function(v)
         DarkLib:Notify({ Title = "Toggle", Content = "Simple toggle: " .. tostring(v), Type = v and "success" or "warn" })
     end,
@@ -124,8 +130,64 @@ local togSimple = Tab1:CreateToggle({
 local togDesc = Tab1:CreateToggle({
     Name         = "Toggle with Description",
     Description  = "Toggling this affects the described feature.",
-    CurrentValue = true,
+    Default = true,
     Callback     = function(v)
         DarkLib:Notify({ Title = "Toggle", Content = "Toggle w/ desc: " .. tostring(v), Type = v and "success" or "warn" })
     end,
 }, "ToggleDesc")
+
+Tab1:CreateDivider({ Text = "Toggle Controls" })
+
+Tab1:CreateButton({
+    Name     = "Force Both Toggles OFF",
+    Callback = function()
+        togSimple:UpdateState(false)
+        togDesc:UpdateState(false)
+        DarkLib:Notify({ Title = "UpdateState", Content = "Both toggles set to false.", Type = "warn" })
+    end,
+})
+
+Tab1:CreateButton({
+    Name     = "Force Both Toggles ON",
+    Callback = function()
+        togSimple:UpdateState(true)
+        togDesc:UpdateState(true)
+        DarkLib:Notify({ Title = "UpdateState", Content = "Both toggles set to true.", Type = "success" })
+    end,
+})
+
+Tab1:CreateButton({
+    Name     = "Lock Simple Toggle",
+    Callback = function()
+        togSimple:ToggleLock(true)
+        DarkLib:Notify({ Title = "Lock", Content = "Simple toggle locked.", Type = "warn" })
+    end,
+})
+
+Tab1:CreateButton({
+    Name     = "Unlock Simple Toggle",
+    Callback = function()
+        togSimple:ToggleLock(false)
+        DarkLib:Notify({ Title = "Unlock", Content = "Simple toggle unlocked.", Type = "success" })
+    end,
+})
+
+Tab1:CreateButton({
+    Name     = "Check Lock State",
+    Callback = function()
+        DarkLib:Notify({
+            Title   = "Lock State",
+            Content = "Simple toggle locked: " .. tostring(togSimple:IsLocked()),
+            Type    = "info",
+        })
+    end,
+})
+
+Tab1:CreateButton({
+    Name     = "Destroy Toggle w/ Desc",
+    Callback = function()
+        togDesc:Destroy()
+        DarkLib:Notify({ Title = "Destroy", Content = "Toggle with description destroyed.", Type = "error" })
+    end,
+})
+```
