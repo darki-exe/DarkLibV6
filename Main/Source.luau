@@ -322,6 +322,7 @@ function DarkLib:CreateWindow(cfg)
     cfg = Merge({
         Title         = "DarkLib V6",
         Subtitle      = "by darkmoonhub",
+        WindowIconID  = nil,
         HideBind      = Enum.KeyCode.RightControl,
         LoadingScreen = true,
         LoadingTitle  = "Loading...",
@@ -420,33 +421,52 @@ function DarkLib:CreateWindow(cfg)
         Parent = TopBar
     }, { UICorner(2) })
 
-    local TitleLabel = New("TextLabel", {
-        Name = "Title",
-        Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(0, 14, 0, 0),
-        BackgroundTransparency = 1,
-        Text = cfg.Title,
-        TextColor3 = Theme.Text,
-        Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 3,
-        Parent = TopBar
-    })
+local _iconSize   = 24
+local _iconPad    = 8
+local _titleLeft  = 14
 
-    New("TextLabel", {
-        Name = "Subtitle",
-        Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(0, 14 + TitleLabel.TextBounds.X + 8, 0, 0),
+local winIconLabel = nil
+if cfg.WindowIconID then
+    winIconLabel = New("ImageLabel", {
+        Name = "WindowIcon",
+        Size = UDim2.fromOffset(_iconSize, _iconSize),
+        Position = UDim2.new(0, _titleLeft, 0.5, -math.floor(_iconSize / 2)),
         BackgroundTransparency = 1,
-        Text = cfg.Subtitle,
-        TextColor3 = Theme.TextMuted,
-        Font = Enum.Font.Gotham,
-        TextSize = 12,
-        TextXAlignment = Enum.TextXAlignment.Left,
+        Image = "rbxassetid://" .. cfg.WindowIconID,
+        ScaleType = Enum.ScaleType.Fit,
         ZIndex = 3,
-        Parent = TopBar
+        Parent = TopBar,
     })
+    _titleLeft = _titleLeft + _iconSize + _iconPad
+end
+
+local TitleLabel = New("TextLabel", {
+    Name = "Title",
+    Size = UDim2.new(0, 200, 1, 0),
+    Position = UDim2.new(0, _titleLeft, 0, 0),
+    BackgroundTransparency = 1,
+    Text = cfg.Title,
+    TextColor3 = Theme.Text,
+    Font = Enum.Font.GothamBold,
+    TextSize = 14,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 3,
+    Parent = TopBar
+})
+
+New("TextLabel", {
+    Name = "Subtitle",
+    Size = UDim2.new(0, 200, 1, 0),
+    Position = UDim2.new(0, _titleLeft + TitleLabel.TextBounds.X + 8, 0, 0),
+    BackgroundTransparency = 1,
+    Text = cfg.Subtitle,
+    TextColor3 = Theme.TextMuted,
+    Font = Enum.Font.Gotham,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 3,
+    Parent = TopBar
+})
 
     
     local _ctrlOffset = -12
